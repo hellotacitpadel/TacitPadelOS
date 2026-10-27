@@ -1,0 +1,1293 @@
+{
+ "object": "database",
+ "id": "267afdfb-c3c7-8083-b9f1-f0ba694f56d6",
+ "cover": null,
+ "icon": {
+  "type": "icon",
+  "icon": {
+   "name": "chart-mixed",
+   "color": "brown"
+  }
+ },
+ "created_time": "2025-09-07T09:22:00.000Z",
+ "created_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_by": {
+  "object": "user",
+  "id": "404d872b-594c-8139-9f67-00027da82f95"
+ },
+ "last_edited_time": "2026-10-26T08:24:00.000Z",
+ "title": [
+  {
+   "type": "text",
+   "text": {
+    "content": "TP: Balance Sheet",
+    "link": null
+   },
+   "annotations": {
+    "bold": false,
+    "italic": false,
+    "strikethrough": false,
+    "underline": false,
+    "code": false,
+    "color": "default"
+   },
+   "plain_text": "TP: Balance Sheet",
+   "href": null
+  }
+ ],
+ "description": [],
+ "is_inline": false,
+ "database_type": null,
+ "properties": {
+  "Min. Access": {
+   "id": "%3A%3E~%5D",
+   "name": "Min. Access",
+   "description": "Minimum access level inferred from Can Edit/Can Comment/Can View",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  /* Combine all people from edit, comment, and view permissions */\n  allPeople, concat(\n    prop(\"Can Edit\"),\n    prop(\"Can Comment\"),\n    prop(\"Can View\")\n  ).map(current.name()),\n  /* Check for access levels in priority order */\n  ifs(\n    allPeople.includes(\"Team\"), \"Team\",\n    allPeople.includes(\"Leadership\"), \"Leadership\",\n    allPeople.includes(\"Owners\"), \"Owners\",\n    \"Admin\"\n  )\n)"
+   }
+  },
+  "Last edited by": {
+   "id": "%3Cfg%5D",
+   "name": "Last edited by",
+   "description": null,
+   "type": "last_edited_by",
+   "last_edited_by": {}
+  },
+  "Budget Category": {
+   "id": "%3DjQ~",
+   "name": "Budget Category",
+   "description": "Budget classification for Balance Sheet records. Replaces Global Tags budget sub-tags.",
+   "type": "multi_select",
+   "multi_select": {
+    "options": [
+     {
+      "id": "KKR=",
+      "name": "Accommodation",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "hNZf",
+      "name": "Coaching Equipment",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "Ablw",
+      "name": "Education",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "|C<A",
+      "name": "Expenses",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "j`>L",
+      "name": "F & B",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "E=M?",
+      "name": "Fees",
+      "color": "red",
+      "description": null
+     },
+     {
+      "id": "LWJd",
+      "name": "Insurance",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "YwdL",
+      "name": "Loan",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "^NS:",
+      "name": "Revenue",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "E}>;",
+      "name": "Salaries",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": "V{X\\",
+      "name": "Software",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "JdHu",
+      "name": "Subscriptions",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "[O`Y",
+      "name": "Supplies",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": ">`kB",
+      "name": "Telecommunications",
+      "color": "default",
+      "description": null
+     },
+     {
+      "id": "k]{H",
+      "name": "Transport",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "BCN|",
+      "name": "Travel",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "^<}m",
+      "name": "Vendor",
+      "color": "red",
+      "description": null
+     },
+     {
+      "id": "aGxw",
+      "name": "Visas",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "TyA\\",
+      "name": "Personal",
+      "color": "default",
+      "description": null
+     },
+     {
+      "id": "W|:=",
+      "name": "Partner Settlement",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "~:FA",
+      "name": "Court Rental",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "47fa0ed4-0ae5-452c-b51a-223c3fd47d95",
+      "name": "Tax",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "eee7b976-3a13-435c-8704-499f1d5191b8",
+      "name": "Interest",
+      "color": "purple",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Price (PHP)": {
+   "id": "%3DlCa",
+   "name": "Price (PHP)",
+   "description": "Worker-generated currency output; do not edit manually.",
+   "type": "number",
+   "number": {
+    "format": "philippine_peso"
+   }
+  },
+  "In/Out [Formula]": {
+   "id": "%3Emz%40",
+   "name": "In/Out [Formula]",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "/* In/Out classification \u2014 uses local In/Out select only */\nif(prop(\"In/Out\") == \"Incoming\",\n  style(\"Incoming\", \"b\", \"green\"),\n  if(prop(\"In/Out\") == \"Outgoing\",\n    style(\"Outgoing\", \"b\", \"red\"),\n    \"\"\n  )\n)"
+   }
+  },
+  "ID": {
+   "id": "%3FKU%7C",
+   "name": "ID",
+   "description": null,
+   "type": "rollup",
+   "rollup": {
+    "rollup_property_name": "ID",
+    "relation_property_name": "Sales",
+    "rollup_property_id": "\\b^_",
+    "relation_property_id": "NU~^",
+    "function": "show_original"
+   }
+  },
+  "Billing Period": {
+   "id": "%3FM%3EX",
+   "name": "Billing Period",
+   "description": "The service period the charge covers (start\u2013end). For subscriptions, the billing window shown on the invoice. Distinct from Transaction Date (the invoice/charge date).",
+   "type": "date",
+   "date": {}
+  },
+  "Price (AUD)": {
+   "id": "%3FjCR",
+   "name": "Price (AUD)",
+   "description": "Worker-generated currency output; do not edit manually.",
+   "type": "number",
+   "number": {
+    "format": "australian_dollar"
+   }
+  },
+  "Price (MYR)": {
+   "id": "%40DYX",
+   "name": "Price (MYR)",
+   "description": "Worker-generated currency output; do not edit manually.",
+   "type": "number",
+   "number": {
+    "format": "ringgit"
+   }
+  },
+  "Price (EUR)": {
+   "id": "%40bvm",
+   "name": "Price (EUR)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "euro"
+   }
+  },
+  "+ / - (IDR)": {
+   "id": "%40%7Dk%40",
+   "name": "+ / - (IDR)",
+   "description": "Net position = Revenue (IDR) \u2212 Cost (IDR). Revenue only populates on Incoming rows (linked Sale's Tacit Net Sales, or Price (IDR) if no Sale); Cost only populates on Outgoing rows (Sale's Club Net Sales for Partner Settlement, else Price (IDR)). Rebuilt 4 Jul 2026 to stop a linked Sale's revenue bleeding into unrelated cost rows. HR Salary cost-source removed 25 Sep 2026 \u2014 payroll is net-only cash basis. See Pre-Flight Artifacts.",
+   "type": "formula",
+   "formula": {
+    "expression": "prop(\"Revenue (IDR)\") - prop(\"Cost (IDR)\")"
+   }
+  },
+  "Last edited time": {
+   "id": "AKIC",
+   "name": "Last edited time",
+   "description": null,
+   "type": "last_edited_time",
+   "last_edited_time": {}
+  },
+  "Price (THB)": {
+   "id": "AXdR",
+   "name": "Price (THB)",
+   "description": "Worker-generated currency output; do not edit manually.",
+   "type": "number",
+   "number": {
+    "format": "baht"
+   }
+  },
+  "Sub-item": {
+   "id": "BJGf",
+   "name": "Sub-item",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "267afdfb-c3c7-8083-b9f1-f0ba694f56d6",
+    "data_source_id": "267afdfb-c3c7-81d9-bc0f-000bb3cd7f70",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Parent item",
+     "synced_property_id": "%7B%3A%3Dr"
+    }
+   }
+  },
+  "Record Type": {
+   "id": "BaQq",
+   "name": "Record Type",
+   "description": "Controls Balance Sheet validation. Transaction = actual money movement; Forecast = expected future item; Container = recurring/configuration context with no financial completeness requirement.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": ":OB]",
+      "name": "Transaction",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "e~=:",
+      "name": "Forecast",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "u;:g",
+      "name": "Container",
+      "color": "gray",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Database Group": {
+   "id": "Bmm_",
+   "name": "Database Group",
+   "description": "Functional group classification from Source Databases page",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": ":OB]",
+      "name": "Storage",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "e~=:",
+      "name": "Activities",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "u;:g",
+      "name": "Knowledge",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "Vzi?",
+      "name": "Tagging",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": "KScc",
+      "name": "Build",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "e\\JN",
+      "name": "AI",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "NyLk",
+      "name": "SV",
+      "color": "green",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Sub-item Total (IDR)": {
+   "id": "JLWu",
+   "name": "Sub-item Total (IDR)",
+   "description": "Sum of Price (IDR) across all sub-items. Used for loan repayment tracking \u2014 shows total repaid against parent record.",
+   "type": "rollup",
+   "rollup": {
+    "rollup_property_name": "Price (IDR)",
+    "relation_property_name": "Sub-item",
+    "rollup_property_id": "PW\\{",
+    "relation_property_id": "BJGf",
+    "function": "sum"
+   }
+  },
+  "Can Comment": {
+   "id": "J%5Ep%7B",
+   "name": "Can Comment",
+   "description": null,
+   "type": "people",
+   "people": {}
+  },
+  "Price (INR)": {
+   "id": "Mx%3Au",
+   "name": "Price (INR)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupee"
+   }
+  },
+  "Sales": {
+   "id": "NU~%5E",
+   "name": "Sales",
+   "description": "",
+   "type": "relation",
+   "relation": {
+    "database_id": "261afdfb-c3c7-81e0-ac1c-f1a3c5cbc97c",
+    "data_source_id": "261afdfb-c3c7-81d5-b4a7-000b0f69814f",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Balance Sheet",
+     "synced_property_id": "%40g%5CZ"
+    }
+   }
+  },
+  "FX Source Amount": {
+   "id": "OMSr",
+   "name": "FX Source Amount",
+   "description": "Authoritative original amount in native currency units. Enter the full unconverted amount; for IDR enter full rupiah (for example 20,000,000), and the Worker stores Price (IDR) using TacitOS\u2019s thousands convention.",
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Recurring Payment Status": {
+   "id": "PRyF",
+   "name": "Recurring Payment Status",
+   "description": "Controls whether a recurring Container may create the next Forecast. Use Not applicable for non-recurring records.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": ":OB]",
+      "name": "Active",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "e~=:",
+      "name": "Paused",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "u;:g",
+      "name": "Cancelled",
+      "color": "red",
+      "description": null
+     },
+     {
+      "id": "Vzi?",
+      "name": "Not applicable",
+      "color": "gray",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Price (IDR)": {
+   "id": "PW%5C%7B",
+   "name": "Price (IDR)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Audit Status": {
+   "id": "PXqY",
+   "name": "Audit Status",
+   "description": "Temporary row-level audit workflow status. Checked means every applicable property has a verified value or an explicit reason it is intentionally blank.",
+   "type": "status",
+   "status": {
+    "options": [
+     {
+      "id": "maC>",
+      "name": "Not started",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "[MiI",
+      "name": "Blocked",
+      "color": "red",
+      "description": null
+     },
+     {
+      "id": "Y:wu",
+      "name": "In progress",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "[~y@",
+      "name": "Checked",
+      "color": "green",
+      "description": null
+     }
+    ],
+    "groups": [
+     {
+      "id": "eOce",
+      "name": "To-do",
+      "color": "default",
+      "option_ids": [
+       "maC>",
+       "[MiI"
+      ]
+     },
+     {
+      "id": "J|]d",
+      "name": "In progress",
+      "color": "default",
+      "option_ids": [
+       "Y:wu"
+      ]
+     },
+     {
+      "id": "nV{{",
+      "name": "Complete",
+      "color": "default",
+      "option_ids": [
+       "[~y@"
+      ]
+     }
+    ],
+    "default_option": null
+   }
+  },
+  "Tacit Net Sales (IDR)": {
+   "id": "Px%60z",
+   "name": "Tacit Net Sales (IDR)",
+   "description": "Sum of Tacit Net Sales from all related Products. Renamed from 'Income (IDR)' on 9 Dec 2025.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(prop(\"Sales\").length() == 0,\n  0,\n  /* Sum all Tacit Net Sales from related Products */\n  prop(\"Sales\")\n    .map(current.prop(\"Tacit Net Sales (IDR)\"))\n    .sum()\n)"
+   }
+  },
+  "Audit Batch": {
+   "id": "REUL",
+   "name": "Audit Batch",
+   "description": "Temporary audit grouping by source/workflow. Remove only after the full audit disposition is saved to the audit task.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": ":OB]",
+      "name": "Sales-linked Revenue",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "e~=:",
+      "name": "Sales-linked Cost",
+      "color": "red",
+      "description": null
+     },
+     {
+      "id": "u;:g",
+      "name": "Partner Settlement",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "Vzi?",
+      "name": "Subscription \u2014 vendor",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "KScc",
+      "name": "Transport / Receipts",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "e\\JN",
+      "name": "Payroll",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": "NyLk",
+      "name": "Loan / Repayment",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "xM|T",
+      "name": "Other Transaction",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "GJ\\E",
+      "name": "Parent / Container",
+      "color": "brown",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Can View": {
+   "id": "TfyF",
+   "name": "Can View",
+   "description": null,
+   "type": "people",
+   "people": {}
+  },
+  "Bank Reference": {
+   "id": "Tiy%3B",
+   "name": "Bank Reference",
+   "description": "Bank transfer / payment reference used for reconciliation (incoming or outgoing).",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Price (USD)": {
+   "id": "UBd%3C",
+   "name": "Price (USD)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "dollar"
+   }
+  },
+  "FX rate used": {
+   "id": "UPOu",
+   "name": "FX rate used",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Can Edit": {
+   "id": "V%3EEl",
+   "name": "Can Edit",
+   "description": "People who have access or ownership for this record",
+   "type": "people",
+   "people": {}
+  },
+  "Price (JPY)": {
+   "id": "WaXl",
+   "name": "Price (JPY)",
+   "description": "Worker-generated currency output; do not edit manually.",
+   "type": "number",
+   "number": {
+    "format": "yen"
+   }
+  },
+  "Price (SGD)": {
+   "id": "Xi%7BZ",
+   "name": "Price (SGD)",
+   "description": "Worker-generated currency output; do not edit manually.",
+   "type": "number",
+   "number": {
+    "format": "singapore_dollar"
+   }
+  },
+  "Cost (IDR)": {
+   "id": "%5CT%3Cr",
+   "name": "Cost (IDR)",
+   "description": "Outgoing-only. Cost follows cash: the linked Sale's Club Net Sales (IDR) for Partner Settlement rows, else Price (IDR). Locked to 0 on Incoming rows. Loans excluded from the P&L (Type 8, 20 Jul 2026). HR Salary rollup branch REMOVED 25 Sep 2026 \u2014 payroll moved to a net-only cash basis, with the paid figure written into Price (IDR) and the gross/deduction detail held in TP: Human Resources. See Pre-Flight Artifact \u2014 Balance Sheet Payroll De-Coupling [25 Sep 2026].",
+   "type": "formula",
+   "formula": {
+    "expression": "/* Loans are financing, not cost \u2014 any row tagged \"Loan\" (incl. repayments) is excluded from the P&L entirely (tracked separately in the Loans & Deferred app) */\nif(not empty(prop(\"Budget Category\")) and prop(\"Budget Category\").includes(\"Loan\"), 0,\n  if(prop(\"In/Out\") != \"Outgoing\", 0,\n    lets(\n      isSettlement, if(empty(prop(\"Budget Category\")), false, prop(\"Budget Category\").includes(\"Partner Settlement\")),\n      settlementCost, if(prop(\"Sales\").length() == 0, 0, prop(\"Sales\").map(current.prop(\"Club Net Sales (IDR)\")).sum()),\n      priceCost, if(empty(prop(\"Price (IDR)\")), 0, prop(\"Price (IDR)\")),\n      ifs(\n        isSettlement, settlementCost,\n        priceCost\n      )\n    )\n  )\n)"
+   }
+  },
+  "Price (AED)": {
+   "id": "%5EnKR",
+   "name": "Price (AED)",
+   "description": "Worker-generated currency output; do not edit manually.",
+   "type": "number",
+   "number": {
+    "format": "dirham"
+   }
+  },
+  "Person": {
+   "id": "_%7Co%60",
+   "name": "Person",
+   "description": null,
+   "type": "people",
+   "people": {}
+  },
+  "Recurring": {
+   "id": "%60%3CmE",
+   "name": "Recurring",
+   "description": null,
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "qNsZ",
+      "name": "Annually",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": "NM>A",
+      "name": "Monthly",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "887d8721-15f3-405a-a532-199651a2238e",
+      "name": "N/A",
+      "color": "yellow",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Note": {
+   "id": "%60XX%3F",
+   "name": "Note",
+   "description": null,
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Created time": {
+   "id": "a%5D%3BZ",
+   "name": "Created time",
+   "description": null,
+   "type": "created_time",
+   "created_time": {}
+  },
+  "Price (CNY)": {
+   "id": "erUs",
+   "name": "Price (CNY)",
+   "description": "Worker-generated currency output; do not edit manually.",
+   "type": "number",
+   "number": {
+    "format": "yuan"
+   }
+  },
+  "FX currency used": {
+   "id": "fdNQ",
+   "name": "FX currency used",
+   "description": "",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "LD>U",
+      "name": "GBP",
+      "color": "pink",
+      "description": ""
+     },
+     {
+      "id": "CnMp",
+      "name": "USD",
+      "color": "gray",
+      "description": ""
+     },
+     {
+      "id": "bqet",
+      "name": "EUR",
+      "color": "green",
+      "description": ""
+     },
+     {
+      "id": "pH?g",
+      "name": "IDR",
+      "color": "blue",
+      "description": ""
+     },
+     {
+      "id": "KScc",
+      "name": "INR",
+      "color": "orange",
+      "description": ""
+     },
+     {
+      "id": "e\\JN",
+      "name": "SGD",
+      "color": "purple",
+      "description": "Singapore dollar"
+     },
+     {
+      "id": "NyLk",
+      "name": "AUD",
+      "color": "yellow",
+      "description": "Australian dollar"
+     },
+     {
+      "id": "xM|T",
+      "name": "JPY",
+      "color": "red",
+      "description": "Japanese yen"
+     },
+     {
+      "id": "GJ\\E",
+      "name": "CNY",
+      "color": "red",
+      "description": "Chinese renminbi yuan"
+     },
+     {
+      "id": "gEHc",
+      "name": "MYR",
+      "color": "green",
+      "description": "Malaysian ringgit"
+     },
+     {
+      "id": "iuTO",
+      "name": "THB",
+      "color": "blue",
+      "description": "Thai baht"
+     },
+     {
+      "id": "mRF`",
+      "name": "HKD",
+      "color": "pink",
+      "description": "Hong Kong dollar"
+     },
+     {
+      "id": "FruV",
+      "name": "KRW",
+      "color": "orange",
+      "description": "South Korean won"
+     },
+     {
+      "id": "<Rwb",
+      "name": "AED",
+      "color": "brown",
+      "description": "UAE dirham"
+     },
+     {
+      "id": "IfBT",
+      "name": "PHP",
+      "color": "purple",
+      "description": "Philippine peso"
+     },
+     {
+      "id": "\\f}:",
+      "name": "VND",
+      "color": "yellow",
+      "description": "Vietnamese \u0111\u1ed3ng"
+     }
+    ]
+   }
+  },
+  "Audit Note": {
+   "id": "gKtd",
+   "name": "Audit Note",
+   "description": "Temporary audit evidence and reasons for intentional blanks or unresolved exceptions.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Reimbursement Date": {
+   "id": "gXoO",
+   "name": "Reimbursement Date",
+   "description": null,
+   "type": "date",
+   "date": {}
+  },
+  "In/Out": {
+   "id": "h%60sL",
+   "name": "In/Out",
+   "description": null,
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "}R;\\",
+      "name": "Outgoing",
+      "color": "red",
+      "description": null
+     },
+     {
+      "id": "OTIQ",
+      "name": "Incoming",
+      "color": "green",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Created by": {
+   "id": "i%3FIV",
+   "name": "Created by",
+   "description": null,
+   "type": "created_by",
+   "created_by": {}
+  },
+  "Review": {
+   "id": "idS%5D",
+   "name": "Review",
+   "description": "Set only by the Balance Sheet validation Worker when an objective rule needs human review. It is not a payment status and does not record a decision.",
+   "type": "checkbox",
+   "checkbox": {}
+  },
+  "Price (HKD)": {
+   "id": "im~M",
+   "name": "Price (HKD)",
+   "description": "Worker-generated currency output; do not edit manually.",
+   "type": "number",
+   "number": {
+    "format": "hong_kong_dollar"
+   }
+  },
+  "Payment Status": {
+   "id": "j%3FHS",
+   "name": "Payment Status",
+   "description": "Payment lifecycle. Unpaid = money hasn't moved yet. Paid = money has changed hands. Reconciled = verified against bank/accounting records.",
+   "type": "status",
+   "status": {
+    "options": [
+     {
+      "id": "PH?Q",
+      "name": "Unpaid",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "[MiI",
+      "name": "Deferred",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "w@]I",
+      "name": "Paid",
+      "color": "blue",
+      "description": ""
+     },
+     {
+      "id": "Z>p;",
+      "name": "Reconciled",
+      "color": "green",
+      "description": ""
+     }
+    ],
+    "groups": [
+     {
+      "id": "822bd28c-ea66-48ba-bb47-a8647d930eb6",
+      "name": "To-do",
+      "color": "gray",
+      "option_ids": [
+       "PH?Q",
+       "[MiI"
+      ]
+     },
+     {
+      "id": "8393e6ea-9f8c-4bed-82f8-e4b945e6801e",
+      "name": "In progress",
+      "color": "blue",
+      "option_ids": [
+       "w@]I"
+      ]
+     },
+     {
+      "id": "fbaa0f95-31ae-4af9-9cb2-766c4ea66d45",
+      "name": "Complete",
+      "color": "green",
+      "option_ids": [
+       "Z>p;"
+      ]
+     }
+    ],
+    "default_option": "Not started"
+   }
+  },
+  "Files & media": {
+   "id": "mBQU",
+   "name": "Files & media",
+   "description": null,
+   "type": "files",
+   "files": {}
+  },
+  "Price (GBP)": {
+   "id": "nNnZ",
+   "name": "Price (GBP)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "pound"
+   }
+  },
+  "Sale Status Context": {
+   "id": "oI_~",
+   "name": "Sale Status Context",
+   "description": "Sale Status + Cancelled By from linked Sale. Shows richer cancellation context (e.g. 'Late Cancellation (Student)'). Empty if no Sale linked.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Sales\")), \"\",\n  lets(\n    /* Sale Status and Cancelled By from linked Sale */\n    status, prop(\"Sales\").first().prop(\"Sale Status\"),\n    by, prop(\"Sales\").first().prop(\"Cancelled By\"),\n    if(empty(status), \"\",\n      if(empty(by), status, status + \" (\" + by + \")\")\n    )\n  )\n)"
+   }
+  },
+  "FX Source Currency": {
+   "id": "oSR%5B",
+   "name": "FX Source Currency",
+   "description": "Authoritative original currency for direct Balance Sheet entries. The FX Worker reads this input and writes converted Price fields; do not use FX currency used as an input.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": ":OB]",
+      "name": "GBP",
+      "color": "pink",
+      "description": ""
+     },
+     {
+      "id": "e~=:",
+      "name": "USD",
+      "color": "gray",
+      "description": ""
+     },
+     {
+      "id": "u;:g",
+      "name": "EUR",
+      "color": "green",
+      "description": ""
+     },
+     {
+      "id": "Vzi?",
+      "name": "INR",
+      "color": "orange",
+      "description": ""
+     },
+     {
+      "id": "KScc",
+      "name": "IDR",
+      "color": "blue",
+      "description": ""
+     },
+     {
+      "id": "e\\JN",
+      "name": "SGD",
+      "color": "purple",
+      "description": "Singapore dollar"
+     },
+     {
+      "id": "NyLk",
+      "name": "AUD",
+      "color": "yellow",
+      "description": "Australian dollar"
+     },
+     {
+      "id": "xM|T",
+      "name": "JPY",
+      "color": "red",
+      "description": "Japanese yen"
+     },
+     {
+      "id": "GJ\\E",
+      "name": "CNY",
+      "color": "red",
+      "description": "Chinese renminbi yuan"
+     },
+     {
+      "id": "gEHc",
+      "name": "MYR",
+      "color": "green",
+      "description": "Malaysian ringgit"
+     },
+     {
+      "id": "iuTO",
+      "name": "THB",
+      "color": "blue",
+      "description": "Thai baht"
+     },
+     {
+      "id": "mRF`",
+      "name": "HKD",
+      "color": "pink",
+      "description": "Hong Kong dollar"
+     },
+     {
+      "id": "FruV",
+      "name": "KRW",
+      "color": "orange",
+      "description": "South Korean won"
+     },
+     {
+      "id": "<Rwb",
+      "name": "AED",
+      "color": "brown",
+      "description": "UAE dirham"
+     },
+     {
+      "id": "IfBT",
+      "name": "PHP",
+      "color": "purple",
+      "description": "Philippine peso"
+     },
+     {
+      "id": "\\f}:",
+      "name": "VND",
+      "color": "yellow",
+      "description": "Vietnamese \u0111\u1ed3ng"
+     }
+    ]
+   }
+  },
+  "Transaction Date": {
+   "id": "pFdX",
+   "name": "Transaction Date",
+   "description": "The actual invoice/charge date \u2014 the date money moves or the invoice is issued, not the period it covers. Billing Period holds the service window.",
+   "type": "date",
+   "date": {}
+  },
+  "Event Status": {
+   "id": "rKLQ",
+   "name": "Event Status",
+   "description": "Event Status cascaded through Products. Returns empty if no Products linked.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty({{notion:block_property:NU~%5E:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), \"\", {{notion:block_property:NU~%5E:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}.first().prop(\"Event Status\"))"
+   }
+  },
+  "Revenue (IDR)": {
+   "id": "suqk",
+   "name": "Revenue (IDR)",
+   "description": "Incoming-only. Sums the linked Sale's Tacit Net Sales (IDR); falls back to Price (IDR) when no Sale is linked. Locked to 0 on Outgoing rows. Part of the + / - (IDR) Revenue/Cost rebuild, 4 Jul 2026 \u2014 see Pre-Flight Artifact.",
+   "type": "formula",
+   "formula": {
+    "expression": "/* Loans are financing, not revenue \u2014 any row tagged \"Loan\" is excluded from the P&L entirely (tracked separately in the Loans & Deferred app) */\nif(not empty(prop(\"Budget Category\")) and prop(\"Budget Category\").includes(\"Loan\"), 0,\n  if(prop(\"In/Out\") != \"Incoming\", 0,\n    if(prop(\"Sales\").length() == 0,\n      if(empty(prop(\"Price (IDR)\")), 0, prop(\"Price (IDR)\")),\n      prop(\"Sales\").map(current.prop(\"Tacit Net Sales (IDR)\")).sum()\n    )\n  )\n)"
+   }
+  },
+  "Reimbursement Status": {
+   "id": "umNG",
+   "name": "Reimbursement Status",
+   "description": "Reimbursement lifecycle. Unclaimed = ready to claim. Claimed = submitted for reimbursement. Reimbursed = paid back. Direct = company paid directly, no reimbursement needed.",
+   "type": "status",
+   "status": {
+    "options": [
+     {
+      "id": "cv|w",
+      "name": "Unclaimed",
+      "color": "yellow",
+      "description": ""
+     },
+     {
+      "id": "xgVa",
+      "name": "Claimed",
+      "color": "blue",
+      "description": ""
+     },
+     {
+      "id": "14fbb918-e339-47e8-b652-5f8376cc36ad",
+      "name": "Direct",
+      "color": "default",
+      "description": "Company paid directly \u2014 no reimbursement applies"
+     },
+     {
+      "id": ";N~U",
+      "name": "Reimbursed",
+      "color": "green",
+      "description": ""
+     }
+    ],
+    "groups": [
+     {
+      "id": "bca2e792-a6c4-46b2-ac7a-85772d943c9d",
+      "name": "To-do",
+      "color": "gray",
+      "option_ids": [
+       "cv|w"
+      ]
+     },
+     {
+      "id": "bbbe278e-ba22-4ed2-9994-50f4482cbde0",
+      "name": "In progress",
+      "color": "blue",
+      "option_ids": [
+       "xgVa"
+      ]
+     },
+     {
+      "id": "3479c50e-1dd1-4074-9b73-8f3064179cb1",
+      "name": "Complete",
+      "color": "green",
+      "option_ids": [
+       "14fbb918-e339-47e8-b652-5f8376cc36ad",
+       ";N~U"
+      ]
+     }
+    ],
+    "default_option": null
+   }
+  },
+  "FX timestamp": {
+   "id": "wb~v",
+   "name": "FX timestamp",
+   "description": null,
+   "type": "date",
+   "date": {}
+  },
+  "Parent item": {
+   "id": "%7B%3A%3Dr",
+   "name": "Parent item",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "267afdfb-c3c7-8083-b9f1-f0ba694f56d6",
+    "data_source_id": "267afdfb-c3c7-81d9-bc0f-000bb3cd7f70",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Sub-item",
+     "synced_property_id": "BJGf"
+    }
+   }
+  },
+  "Price (KRW)": {
+   "id": "%7B%3F%3D%3E",
+   "name": "Price (KRW)",
+   "description": "Worker-generated currency output; do not edit manually.",
+   "type": "number",
+   "number": {
+    "format": "won"
+   }
+  },
+  "Invoice Number": {
+   "id": "%7BWSa",
+   "name": "Invoice Number",
+   "description": "Vendor invoice/document number. Primary dedupe key for ingested invoices; falls back to vendor + Billing Period + amount when absent.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Price (VND)": {
+   "id": "%7BlCj",
+   "name": "Price (VND)",
+   "description": "Worker-generated currency output; do not edit manually.",
+   "type": "number",
+   "number": {
+    "format": "vietnamese_dong"
+   }
+  },
+  "Balance Sheet": {
+   "id": "%7CENR",
+   "name": "Balance Sheet",
+   "description": null,
+   "type": "button",
+   "button": {}
+  },
+  "Run Validation": {
+   "id": "~%3De%3D",
+   "name": "Run Validation",
+   "description": null,
+   "type": "button",
+   "button": {}
+  },
+  "TP: Balance Sheet [Self]": {
+   "id": "~GOs",
+   "name": "TP: Balance Sheet [Self]",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "267afdfb-c3c7-8083-b9f1-f0ba694f56d6",
+    "data_source_id": "267afdfb-c3c7-81d9-bc0f-000bb3cd7f70",
+    "type": "single_property",
+    "single_property": {}
+   }
+  },
+  "Item": {
+   "id": "title",
+   "name": "Item",
+   "description": null,
+   "type": "title",
+   "title": {}
+  }
+ },
+ "parent": {
+  "type": "block_id",
+  "block_id": "261afdfb-c3c7-8189-8da1-d3847fdf0bf5"
+ },
+ "url": "https://app.notion.com/p/267afdfbc3c78083b9f1f0ba694f56d6",
+ "public_url": null,
+ "in_trash": false,
+ "archived": false,
+ "request_id": "718834e7-3544-4ec5-a616-b6a39d605912"
+}

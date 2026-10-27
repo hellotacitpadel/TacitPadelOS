@@ -1,0 +1,2487 @@
+{
+ "object": "database",
+ "id": "261afdfb-c3c7-81e0-ac1c-f1a3c5cbc97c",
+ "cover": null,
+ "icon": {
+  "type": "icon",
+  "icon": {
+   "name": "barcode",
+   "color": "brown"
+  }
+ },
+ "created_time": "2025-09-01T14:19:00.000Z",
+ "created_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_by": {
+  "object": "user",
+  "id": "404d872b-594c-8139-9f67-00027da82f95"
+ },
+ "last_edited_time": "2026-10-26T08:24:00.000Z",
+ "title": [
+  {
+   "type": "text",
+   "text": {
+    "content": "TP: Sales",
+    "link": null
+   },
+   "annotations": {
+    "bold": false,
+    "italic": false,
+    "strikethrough": false,
+    "underline": false,
+    "code": false,
+    "color": "default"
+   },
+   "plain_text": "TP: Sales",
+   "href": null
+  }
+ ],
+ "description": [],
+ "is_inline": false,
+ "database_type": null,
+ "properties": {
+  "UI: \u2461 Court Contribution (IDR)": {
+   "id": "%3AHcc",
+   "name": "UI: \u2461 Court Contribution (IDR)",
+   "description": "Display wrapper for \u2461 Court Contribution (IDR). Red bold. Repositioned to the \u2461 court block alongside Court Rental (v11.1). Renamed UI: \u2461 Court Costs \u2192 Court Contribution (10 Jul 2026, WS1-R4); originally UI: \u2466 Court Subsidy (IDR).",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")), empty(), style(\"\u2461 Court Contribution (IDR): \" + if(empty(prop(\"Court Contribution (IDR)\")), \"0\", format(round(prop(\"Court Contribution (IDR)\"), 0))), \"b\", \"red\"))"
+   }
+  },
+  "Third Party %": {
+   "id": "%3AINL",
+   "name": "Third Party %",
+   "description": "Third party's share of Shared Net Sales for this product. Copied from Split Source Organisation at creation. Do not edit retroactively.",
+   "type": "number",
+   "number": {
+    "format": "percent"
+   }
+  },
+  "Standard (Off Court Hours)": {
+   "id": "%3AI%7CS",
+   "name": "Standard (Off Court Hours)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Coach Standard (IDR PP)": {
+   "id": "%3Adkn",
+   "name": "Coach Standard (IDR PP)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Wallet 2 Draw (IDR)": {
+   "id": "%3AhoP",
+   "name": "Wallet 2 Draw (IDR)",
+   "description": "Exact monetary contribution from Wallet 2 to this lesson Sale. Blank when no second wallet is used.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Paid To": {
+   "id": "%3Amx%5B",
+   "name": "Paid To",
+   "description": "Who received the payment from the student. Club = club invoiced in the normal way. Tacit = Tacit collected directly (cash, transfer, or via a platform on Tacit's behalf). Determines whether a club invoice is required.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Club",
+      "color": "green",
+      "description": ""
+     },
+     {
+      "id": "IZ|n",
+      "name": "Tacit",
+      "color": "blue",
+      "description": ""
+     },
+     {
+      "id": "Y?Gc",
+      "name": "N/A (Cost Sale)",
+      "color": "gray",
+      "description": "Confirmed Cost Sales only; no customer payment was collected."
+     }
+    ]
+   }
+  },
+  "Instructor Starter (IDR PP)": {
+   "id": "%3AsXN",
+   "name": "Instructor Starter (IDR PP)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Created by": {
+   "id": "%3Avp%3F",
+   "name": "Created by",
+   "description": null,
+   "type": "created_by",
+   "created_by": {}
+  },
+  "Instructor Pro (IDR PP)": {
+   "id": "%3Az%3DN",
+   "name": "Instructor Pro (IDR PP)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Match with Coach HC (IDR PP)": {
+   "id": "%3BLWb",
+   "name": "Match with Coach HC (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Coaches Academy (Off Court Hours)": {
+   "id": "%3B%5Cpc",
+   "name": "Coaches Academy (Off Court Hours)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Trainee 1:4 (IDR PP)": {
+   "id": "%3BoIn",
+   "name": "Trainee 1:4 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Can Comment": {
+   "id": "%3CFV%3C",
+   "name": "Can Comment",
+   "description": null,
+   "type": "people",
+   "people": {}
+  },
+  "Target Source System": {
+   "id": "%3C%5CZO",
+   "name": "Target Source System",
+   "description": "Originating system for target-state provenance; source-neutral.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Shadow Calculation Revision": {
+   "id": "%3CnfV",
+   "name": "Shadow Calculation Revision",
+   "description": "Version identifier for the shadow calculation.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Play with Coach (IDR PP)": {
+   "id": "%3CvpU",
+   "name": "Play with Coach (IDR PP)",
+   "description": "Flat per-student price for the Play with Coach rotation product (beat-the-coach, 8\u201312 players, 2 courts). Club-set with Tacit approval; court included (Revenue Scope = Combined).",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Financial Pricing Hours": {
+   "id": "%3DJ%3DY",
+   "name": "Financial Pricing Hours",
+   "description": "Uses the scheduled parent Event duration only for an eligible Payment V1 paid-pending Clinic; all other routes retain the existing confirmed-only Total Hours value.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  paidPendingClinic,\n    prop(\"Financial Route\") == \"Payment V1\" and\n    prop(\"Sale Type\") == \"Clinic\" and\n    prop(\"Financial Release Ready\"),\n  if(\n    paidPendingClinic,\n    prop(\"Events\")\n      .filter(\n        current.prop(\"Facility\") == \"On Court\" and\n        not empty(current.prop(\"Scheduled\")) and\n        empty(current.prop(\"Sub Event\"))\n      )\n      .map(\n        dateBetween(\n          dateEnd(current.prop(\"Scheduled\")),\n          dateStart(current.prop(\"Scheduled\")),\n          \"minutes\"\n        ) / 60\n      )\n      .sum(),\n    toNumber(prop(\"Total Hours\"))\n  )\n)"
+   }
+  },
+  "Discount Explanation": {
+   "id": "%3DNqF",
+   "name": "Discount Explanation",
+   "description": "Free-text explanation of why a discount was applied to this sale. Complements the Discount Reason multi-select (which captures the category); this field captures the specific narrative/context behind the discount. Populated by Basil as a follow-up after Discount Reason is captured, and backfilled for historical discounted rows. Added via Change Request (Discount Explanation CR).",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Wallet Value (IDR)": {
+   "id": "%3ERXd",
+   "name": "Wallet Value (IDR)",
+   "description": "Cash paid upfront for the wallet. Set once at wallet creation. Parent wallet only; leave blank on lesson Sales. Wallet Opening Credit adds any Wallet Bonus Credit.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Shadow Validation State": {
+   "id": "%3FJOU",
+   "name": "Shadow Validation State",
+   "description": "Reconciliation state for shadow target-state fields.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Ready",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "IZ|n",
+      "name": "Blocked",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "Y?Gc",
+      "name": "Mismatch",
+      "color": "red",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Pro (On Court Hours)": {
+   "id": "%3FRtF",
+   "name": "Pro (On Court Hours)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Instructor 1:2 (IDR PP)": {
+   "id": "%3FXBN",
+   "name": "Instructor 1:2 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Wallet Funding Check": {
+   "id": "%3FcDA",
+   "name": "Wallet Funding Check",
+   "description": "Wallets 2.0 post-write validation. Detects incomplete or invalid slot data, duplicate or ineligible wallets, aggregate mismatch, overdraw and Wallet 2 use before Wallet 1 is exhausted. FIFO discovery remains Basil's responsibility.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  wallet1Count, prop(\"Group\").length(),\n  wallet2Count, prop(\"Wallet 2\").length(),\n  wallet1Draw, if(empty(prop(\"Wallet 1 Draw (IDR)\")), 0, prop(\"Wallet 1 Draw (IDR)\")),\n  wallet2Draw, if(empty(prop(\"Wallet 2 Draw (IDR)\")), 0, prop(\"Wallet 2 Draw (IDR)\")),\n  aggregateDraw, if(empty(prop(\"Wallet Credit Draw (IDR)\")), 0, prop(\"Wallet Credit Draw (IDR)\")),\n  walletIntent, prop(\"Discount Reason\").includes(\"Wallet: Paid\") or wallet2Count > 0 or wallet1Draw != 0 or wallet2Draw != 0,\n  wallet1EligibleCount, prop(\"Group\").filter(current.prop(\"Sale Role\") == \"Wallet\" and current.prop(\"Sale Status\") != \"Cancelled\" and not empty(current.prop(\"Wallet Value (IDR)\")) and (current.prop(\"Wallet Type\") == \"EPA Late 26\" or current.prop(\"Wallet Type\") == \"Proklamasi 26\" or current.prop(\"Wallet Type\") == \"1945 26\" or current.prop(\"Wallet Type\") == \"Garuda 26\")).length(),\n  wallet2EligibleCount, prop(\"Wallet 2\").filter(current.prop(\"Sale Role\") == \"Wallet\" and current.prop(\"Sale Status\") != \"Cancelled\" and not empty(current.prop(\"Wallet Value (IDR)\")) and (current.prop(\"Wallet Type\") == \"EPA Late 26\" or current.prop(\"Wallet Type\") == \"Proklamasi 26\" or current.prop(\"Wallet Type\") == \"1945 26\" or current.prop(\"Wallet Type\") == \"Garuda 26\")).length(),\n  wallet1Id, prop(\"Group\").map(id(current)).first(),\n  wallet2Id, prop(\"Wallet 2\").map(id(current)).first(),\n  wallet1Remaining, prop(\"Group\").map(current.prop(\"Wallet Credit Remaining (IDR)\")).first(),\n  wallet2Remaining, prop(\"Wallet 2\").map(current.prop(\"Wallet Credit Remaining (IDR)\")).first(),\n  legacyAllocation, walletIntent and wallet1Count == 1 and wallet2Count == 0 and empty(prop(\"Wallet 1 Draw (IDR)\")) and empty(prop(\"Wallet 2 Draw (IDR)\")) and aggregateDraw > 0,\n  ifs(\n    not walletIntent, \"\",\n    prop(\"Sale Status\") == \"Cancelled\", \"\u21a9\ufe0f CANCELLED \u2014 credit reversed\",\n    legacyAllocation, \"\ud83d\udfe1 LEGACY \u2014 aggregate draw compatibility\",\n    prop(\"Sale Type\") != \"Private Lesson\", \"\u26d4 Only Private Lesson can use a wallet\",\n    not prop(\"Discount Reason\").includes(\"Wallet: Paid\"), \"\u26d4 Missing Wallet: Paid reason\",\n    wallet1Count != 1, \"\u26d4 Wallet 1 must contain exactly one wallet\",\n    wallet2Count > 1, \"\u26d4 Wallet 2 must contain at most one wallet\",\n    wallet1EligibleCount != 1, \"\u26d4 Wallet 1 is ineligible\",\n    wallet2Count == 1 and wallet2EligibleCount != 1, \"\u26d4 Wallet 2 is ineligible\",\n    wallet2Count == 1 and wallet1Id == wallet2Id, \"\u26d4 Wallet 1 and Wallet 2 are identical\",\n    wallet1Draw <= 0, \"\u26d4 Wallet 1 draw must be positive\",\n    wallet2Count == 0 and wallet2Draw != 0, \"\u26d4 Wallet 2 draw exists without Wallet 2\",\n    wallet2Count == 1 and wallet2Draw <= 0, \"\u26d4 Wallet 2 requires a positive draw\",\n    aggregateDraw <= 0, \"\u26d4 Aggregate wallet draw must be positive\",\n    round(wallet1Draw + wallet2Draw, 0) != round(aggregateDraw, 0), \"\u26d4 Slot draws do not equal aggregate wallet draw\",\n    wallet1Remaining < 0, \"\u26d4 Wallet 1 overdrawn\",\n    wallet2Count == 1 and wallet2Remaining < 0, \"\u26d4 Wallet 2 overdrawn\",\n    wallet2Count == 1 and wallet1Remaining != 0, \"\u26d4 Wallet 2 used before Wallet 1 exhausted\",\n    \"\u2705 OK\"\n  )\n)"
+   }
+  },
+  "Discount Reason": {
+   "id": "%40INs",
+   "name": "Discount Reason",
+   "description": "Why a discount was applied to this sale. Multi-select \u2014 a sale can carry more than one reason. Options are expected to evolve; add future options via a Change Request.",
+   "type": "multi_select",
+   "multi_select": {
+    "options": [
+     {
+      "id": "AUDD",
+      "name": "Promo",
+      "color": "green",
+      "description": ""
+     },
+     {
+      "id": "XEYT",
+      "name": "Club Staff",
+      "color": "blue",
+      "description": ""
+     },
+     {
+      "id": "l:EY",
+      "name": "Tacit Staff",
+      "color": "purple",
+      "description": ""
+     },
+     {
+      "id": "L{Wa",
+      "name": "Tacit Error",
+      "color": "red",
+      "description": ""
+     },
+     {
+      "id": "~RH=",
+      "name": "Club Error",
+      "color": "orange",
+      "description": ""
+     },
+     {
+      "id": "1753c1a7-1956-4a1c-aca2-21d555ddcb9a",
+      "name": "Coach Cover",
+      "color": "pink",
+      "description": ""
+     },
+     {
+      "id": "u\\;E",
+      "name": "Wallet: Paid",
+      "color": "brown",
+      "description": ""
+     },
+     {
+      "id": "OPVl",
+      "name": "Wallet: Free",
+      "color": "brown",
+      "description": ""
+     },
+     {
+      "id": "JZOc",
+      "name": "Unreasonable",
+      "color": "gray",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Balance Sheet": {
+   "id": "%40g%5CZ",
+   "name": "Balance Sheet",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "267afdfb-c3c7-8083-b9f1-f0ba694f56d6",
+    "data_source_id": "267afdfb-c3c7-81d9-bc0f-000bb3cd7f70",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Sales",
+     "synced_property_id": "NU~%5E"
+    }
+   }
+  },
+  "Coaches Course (IDR PP)": {
+   "id": "%40yOC",
+   "name": "Coaches Course (IDR PP)",
+   "description": "Price (IDR) per student for coaching academy programmes",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Can View": {
+   "id": "AcbI",
+   "name": "Can View",
+   "description": null,
+   "type": "people",
+   "people": {}
+  },
+  "Tacit Discount %": {
+   "id": "BCil",
+   "name": "Tacit Discount %",
+   "description": "Discount absorbed 100% by Tacit. Club and coach are PROTECTED \u2014 their shares aren't reduced. Renamed from Discretionary Discount % (8 Feb 2026).",
+   "type": "number",
+   "number": {
+    "format": "percent"
+   }
+  },
+  "Database Group": {
+   "id": "BEs%5B",
+   "name": "Database Group",
+   "description": "Functional group classification from Source Databases page",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Storage",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "IZ|n",
+      "name": "Activities",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "Y?Gc",
+      "name": "Knowledge",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "Lsc_",
+      "name": "Tagging",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": "Mjwi",
+      "name": "Build",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "_h\\C",
+      "name": "AI",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "\\tEC",
+      "name": "SV",
+      "color": "green",
+      "description": null
+     }
+    ]
+   }
+  },
+  "UI: \u246c Tacit Net Sales (IDR)": {
+   "id": "C_lJ",
+   "name": "UI: \u246c Tacit Net Sales (IDR)",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")) or empty(prop(\"Tacit Net Sales (IDR)\")), empty(), style(\"\u246c Tacit Net Sales (IDR): \" + format(round(prop(\"Tacit Net Sales (IDR)\"), 0)), \"b\", \"green\"))"
+   }
+  },
+  "Pro (Off Court Hours)": {
+   "id": "DEWf",
+   "name": "Pro (Off Court Hours)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Final Charged Price (IDR)": {
+   "id": "EIc%7C",
+   "name": "Final Charged Price (IDR)",
+   "description": "Immutable final amount charged after permitted adjustments. This is an audit snapshot, not a second calculation input.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Event Status": {
+   "id": "ET%7C~",
+   "name": "Event Status",
+   "description": "Event Status from related Event. Returns empty if no Event linked.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(prop(\"Events\").length() > 0,\n  prop(\"Events\").first().prop(\"Status\"),\n  \"\"\n)"
+   }
+  },
+  "Head Coach Starter (IDR PP)": {
+   "id": "Ehyj",
+   "name": "Head Coach Starter (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Sale Type": {
+   "id": "F%3Fuv",
+   "name": "Sale Type",
+   "description": "Product type for this sale. Set once at creation, never changed. 6 live values: Private Lesson, Match with Coach, Play with Coach, Player Academy, Coaches Academy, Clinic. (22 Jun 2026: the former 'Play with Coach' was renamed to 'Match with Coach'; a new 'Play with Coach' beat-the-coach rotation product was added.)",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Private Lesson",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "IZ|n",
+      "name": "Match with Coach",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "Y?Gc",
+      "name": "Player Academy",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "Lsc_",
+      "name": "Coaches Academy",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "[}Uw",
+      "name": "Clinic",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "_h\\C",
+      "name": "Play with Coach",
+      "color": "pink",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Basic (On Court Hours)": {
+   "id": "F%7DSS",
+   "name": "Basic (On Court Hours)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Revenue Scope": {
+   "id": "G%3BR%7C",
+   "name": "Revenue Scope",
+   "description": "Revenue scope for this product. Copied from Split Source Organisation at creation. Academy fees only = court rental deducted before split. Everything = court + coaching pooled.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Academy Fees",
+      "color": "blue",
+      "description": ""
+     },
+     {
+      "id": "IZ|n",
+      "name": "Combined",
+      "color": "green",
+      "description": ""
+     }
+    ]
+   }
+  },
+  "Wallet Credit Remaining (IDR)": {
+   "id": "GHFr",
+   "name": "Wallet Credit Remaining (IDR)",
+   "description": "Opening monetary credit minus used monetary credit. Active finite wallet parent only.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  activeFiniteWallet, prop(\"Wallet Type\") == \"EPA Late 26\" or prop(\"Wallet Type\") == \"Proklamasi 26\" or prop(\"Wallet Type\") == \"1945 26\" or prop(\"Wallet Type\") == \"Garuda 26\",\n  isWalletParent, activeFiniteWallet and prop(\"Sale Role\") == \"Wallet\" and not empty(prop(\"Wallet Value (IDR)\")),\n  if(not isWalletParent, empty(), prop(\"Wallet Opening Credit (IDR)\") - prop(\"Wallet Credit Used (IDR)\"))\n)"
+   }
+  },
+  "Instructor Standard (IDR PP)": {
+   "id": "Gyll",
+   "name": "Instructor Standard (IDR PP)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Head Coach Premium (IDR PP)": {
+   "id": "HfYo",
+   "name": "Head Coach Premium (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Shadow Expected Court Settlement (IDR)": {
+   "id": "Hx%7DG",
+   "name": "Shadow Expected Court Settlement (IDR)",
+   "description": "Expected court settlement for the financial unit. Shadow only.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Target Financial Unit": {
+   "id": "I%3CLt",
+   "name": "Target Financial Unit",
+   "description": "The event or payable financial unit for target-state validation. Shadow only.",
+   "type": "relation",
+   "relation": {
+    "database_id": "261afdfb-c3c7-8153-b58b-c7959ae8256e",
+    "data_source_id": "261afdfb-c3c7-8178-98cd-000b29cdbb16",
+    "type": "single_property",
+    "single_property": {}
+   }
+  },
+  "UI: \u2470 Community Funding (IDR)": {
+   "id": "I%40Z%40",
+   "name": "UI: \u2470 Community Funding (IDR)",
+   "description": "Display wrapper for \u2470 Community Funding allocation.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")), empty(), if(empty(prop(\"Community Funding (IDR)\")), \"\u2470 Community Funding (IDR): 0\", \"\u2470 Community Funding (IDR): \" + format(round(prop(\"Community Funding (IDR)\"), 0))))"
+   }
+  },
+  "UI: \u246a Club Net Sales (IDR)": {
+   "id": "IG%5EK",
+   "name": "UI: \u246a Club Net Sales (IDR)",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")), empty(), style(\"\u246a Club Net Sales (IDR): \" + format(round(prop(\"Club Net Sales (IDR)\"), 0)), \"b\", \"red\"))"
+   }
+  },
+  "Shadow Applied Coach Level 2": {
+   "id": "J%3EM%5B",
+   "name": "Shadow Applied Coach Level 2",
+   "description": "Coach level applied by the second shadow calculation.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Head Coach",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "IZ|n",
+      "name": "Senior Coach",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "Y?Gc",
+      "name": "Coach",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "Lsc_",
+      "name": "Instructor",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "Mjwi",
+      "name": "Trainee",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "_h\\C",
+      "name": "None",
+      "color": "default",
+      "description": null
+     }
+    ]
+   }
+  },
+  "OPEX (IDR)": {
+   "id": "JK%5B%3A",
+   "name": "OPEX (IDR)",
+   "description": "30% of Tacit Gross Profit allocated to operating expenses. Reduced from 40% on 2 May 2026 (Community Funding layer added).",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(bs, prop(\"Balance Sheet\"), hasAccess, bs.length() > 0, if(!hasAccess, 0, round(max(prop(\"Tacit Gross Profit (IDR)\"), 0) * 0.3)))"
+   }
+  },
+  "Event Capacity": {
+   "id": "JMFu",
+   "name": "Event Capacity",
+   "description": "Planned capacity rolled down from the linked Event. Used as the Court Contribution denominator (Court Rental \u00f7 Event Capacity = per-seat court charge).",
+   "type": "rollup",
+   "rollup": {
+    "rollup_property_name": "Capacity",
+    "relation_property_name": "Events",
+    "rollup_property_id": "jwlv",
+    "relation_property_id": "M}{v",
+    "function": "show_original"
+   }
+  },
+  "Trainee 1:3 (IDR PP)": {
+   "id": "J%7DN%7C",
+   "name": "Trainee 1:3 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Tacit Net Sales (IDR)": {
+   "id": "J~I_",
+   "name": "Tacit Net Sales (IDR)",
+   "description": "Shared Net Sales minus Club Net Sales. Tacit absorbs all Tacit Discount impact here.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  bs, prop(\"Balance Sheet\"),\n  hasAccess, bs.length() > 0,\n  if(not hasAccess, 0,\n    if(empty(prop(\"Shared Net Sales (IDR)\")), 0,\n      prop(\"Shared Net Sales (IDR)\")\n      - if(empty(prop(\"Club Net Sales (IDR)\")), 0, prop(\"Club Net Sales (IDR)\"))\n      - if(empty(prop(\"Third Party Net Sales (IDR)\")), 0, prop(\"Third Party Net Sales (IDR)\"))\n    )\n  )\n)"
+   }
+  },
+  "Classroom Hours": {
+   "id": "K%3Dqf",
+   "name": "Classroom Hours",
+   "description": "Total hours spent in classroom for this product",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(mainClassroomHours, prop(\"Events\").filter(current.prop(\"Facility\") == \"Classroom\" and not empty(current.prop(\"Scheduled\")) and current.prop(\"Status\") == \"Confirmed\" and empty(current.prop(\"Sub Event\"))).map(dateBetween(dateEnd(current.prop(\"Scheduled\")), dateStart(current.prop(\"Scheduled\")), \"minutes\") / 60), subClassroomHours, prop(\"Events\").map(current.prop(\"Sub Event\").filter(current.prop(\"Facility\") == \"Classroom\" and not empty(current.prop(\"Scheduled\")) and current.prop(\"Status\") == \"Confirmed\").map(dateBetween(dateEnd(current.prop(\"Scheduled\")), dateStart(current.prop(\"Scheduled\")), \"minutes\") / 60)).flat(), sum(mainClassroomHours.concat(subClassroomHours)))"
+   }
+  },
+  "Coach 1:3 (IDR PP)": {
+   "id": "Kf%3Di",
+   "name": "Coach 1:3 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "UI: \u2471 Dividends (IDR)": {
+   "id": "KqIk",
+   "name": "UI: \u2471 Dividends (IDR)",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")), empty(), if(empty(prop(\"Dividends (IDR)\")), \"\u2471 Dividends (IDR): 0\", \"\u2471 Dividends (IDR): \" + format(round(prop(\"Dividends (IDR)\"), 0))))"
+   }
+  },
+  "Senior Coach Standard (IDR PP)": {
+   "id": "Ktu%60",
+   "name": "Senior Coach Standard (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Total Hours": {
+   "id": "KxL%3F",
+   "name": "Total Hours",
+   "description": "Sum of all session hours (On Court + Classroom + Gym)",
+   "type": "formula",
+   "formula": {
+    "expression": "prop(\"On Court Hours\")+prop(\"Classroom Hours\")+prop(\"Gym Hours\")"
+   }
+  },
+  "Senior Coach 1:2 (IDR PP)": {
+   "id": "K~%3D%3B",
+   "name": "Senior Coach 1:2 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Group": {
+   "id": "L%3CHr",
+   "name": "Group",
+   "description": "",
+   "type": "relation",
+   "relation": {
+    "database_id": "261afdfb-c3c7-81e0-ac1c-f1a3c5cbc97c",
+    "data_source_id": "261afdfb-c3c7-81d5-b4a7-000b0f69814f",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Item",
+     "synced_property_id": "%7B%3BSB"
+    }
+   }
+  },
+  "Wallet Bonus Credit (IDR)": {
+   "id": "LDFb",
+   "name": "Wallet Bonus Credit (IDR)",
+   "description": "Promotional credit added to the cash Wallet Value. Parent wallet only; leave blank on child Sales.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Clinic Level": {
+   "id": "LGmL",
+   "name": "Clinic Level",
+   "description": "Descriptive tag only \u2014 no pricing role. Retained on historical Open/Weekly Clinic rows for reporting. Live clinic pricing is the field-driven, PL-anchored Clinic (IDR PP) (Basil-stamped at the realised ratio).",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "S@]r",
+      "name": "U8",
+      "color": "pink",
+      "description": ""
+     },
+     {
+      "id": "GSYy",
+      "name": "U14",
+      "color": "green",
+      "description": ""
+     },
+     {
+      "id": "hvNV",
+      "name": "U18",
+      "color": "blue",
+      "description": ""
+     },
+     {
+      "id": "W_R[",
+      "name": "Introduction",
+      "color": "gray",
+      "description": ""
+     },
+     {
+      "id": "{tgz",
+      "name": "Beginner",
+      "color": "orange",
+      "description": ""
+     },
+     {
+      "id": "\\iW?",
+      "name": "Intermediate",
+      "color": "purple",
+      "description": ""
+     },
+     {
+      "id": "|ZO?",
+      "name": "Advanced",
+      "color": "red",
+      "description": ""
+     }
+    ]
+   }
+  },
+  "Week": {
+   "id": "L%5ClC",
+   "name": "Week",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")), \"\",\n  lets(\n    /* Get week number and year from scheduled date */\n    weekNum, week(prop(\"Scheduled\")),\n    yearNum, year(prop(\"Scheduled\")),\n    /* Pad week number with leading zero if needed */\n    paddedWeek, if(weekNum < 10, \"0\" + format(weekNum), format(weekNum)),\n    /* Format as 'Week XX, YYYY' */\n    \"Week \" + paddedWeek + \", \" + format(yearNum)\n  )\n)"
+   }
+  },
+  "Events": {
+   "id": "M%7D%7Bv",
+   "name": "Events",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "261afdfb-c3c7-8153-b58b-c7959ae8256e",
+    "data_source_id": "261afdfb-c3c7-8178-98cd-000b29cdbb16",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Sales",
+     "synced_property_id": "Z_gP"
+    }
+   }
+  },
+  "Total Income (IDR)": {
+   "id": "NEcQ",
+   "name": "Total Income (IDR)",
+   "description": "Full amount collected from students. Students \u00d7 Price \u00d7 Hours. Only when Event = Confirmed.",
+   "type": "formula",
+   "formula": {
+    "expression": "ifs(\n  not prop(\"Financial Release Ready\"), 0,\n  prop(\"Sale Role\") == \"Cost\", 0,\n  round(\n    (empty(prop(\"Academy Fees (IDR)\")) ? 0 : prop(\"Academy Fees (IDR)\")) +\n    (empty(prop(\"Court Contribution (IDR)\")) ? 0 : prop(\"Court Contribution (IDR)\")),\n    0\n  )\n)"
+   }
+  },
+  "Coaches Fee (IDR)": {
+   "id": "NO%3Ar",
+   "name": "Coaches Fee (IDR)",
+   "description": "Total coach compensation for this sale. Sum of Coaches Fee from linked Events (which itself sums HR Fee records).",
+   "type": "rollup",
+   "rollup": {
+    "rollup_property_name": "Coaches Fee (IDR)",
+    "relation_property_name": "Events",
+    "rollup_property_id": "?vRj",
+    "relation_property_id": "M}{v",
+    "function": "sum"
+   }
+  },
+  "Instructor Basic (IDR PP)": {
+   "id": "Nec%7D",
+   "name": "Instructor Basic (IDR PP)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Trainee 1:2 (IDR PP)": {
+   "id": "NfqW",
+   "name": "Trainee 1:2 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Tacit Gross Profit (IDR)": {
+   "id": "Ogs%5C",
+   "name": "Tacit Gross Profit (IDR)",
+   "description": "Tacit Net Sales \u2212 Coaches Fee. Profit after paying coaches.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(bs, prop(\"Balance Sheet\"), hasAccess, bs.length() > 0, if(!hasAccess, 0, if(empty(prop(\"Tacit Net Sales (IDR)\")), 0, prop(\"Tacit Net Sales (IDR)\")) - if(empty(prop(\"Coaches Fee Waterfall (IDR)\")), 0, prop(\"Coaches Fee Waterfall (IDR)\"))))"
+   }
+  },
+  "Starter (Off Court Hours)": {
+   "id": "OuCg",
+   "name": "Starter (Off Court Hours)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Coaches Academy (On Court Hours)": {
+   "id": "O%7Bku",
+   "name": "Coaches Academy (On Court Hours)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Last edited by": {
+   "id": "PL~E",
+   "name": "Last edited by",
+   "description": null,
+   "type": "last_edited_by",
+   "last_edited_by": {}
+  },
+  "Head Coach 1:4 (IDR PP)": {
+   "id": "PQ%3FG",
+   "name": "Head Coach 1:4 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Coach Pro (IDR PP)": {
+   "id": "P%60M%3E",
+   "name": "Coach Pro (IDR PP)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Month": {
+   "id": "Q%40P%7D",
+   "name": "Month",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")),\n  empty(),\n  /* Format date as full month name and year */\n  formatDate(prop(\"Scheduled\"), \"MMMM YYYY\")\n)"
+   }
+  },
+  "Financial Route": {
+   "id": "Q%5CUe",
+   "name": "Financial Route",
+   "description": "Controls which financial-processing route applies. Existing records remain blank; a later activation unit will define controlled defaults.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Legacy",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "IZ|n",
+      "name": "Payment V1",
+      "color": "blue",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Quarter": {
+   "id": "Q%5Ec%7B",
+   "name": "Quarter",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")),\n  \"\",\n  /* Calculate quarter from month and format with year */\n  \"Q\" + format(ceil(prop(\"Scheduled\").month() / 3)) + \", \" + format(prop(\"Scheduled\").year())\n)"
+   }
+  },
+  "Tacit %": {
+   "id": "QsVt",
+   "name": "Tacit %",
+   "description": "Tacit's share of Shared Net Sales for this product. Copied from Split Source Organisation at creation. Do not edit retroactively.",
+   "type": "number",
+   "number": {
+    "format": "percent"
+   }
+  },
+  "Gym Hours": {
+   "id": "R%3FKe",
+   "name": "Gym Hours",
+   "description": "Total hours spent in gym for this product",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(mainGymHours, prop(\"Events\").filter(current.prop(\"Facility\") == \"Gym\" and not empty(current.prop(\"Scheduled\")) and current.prop(\"Status\") == \"Confirmed\" and empty(current.prop(\"Sub Event\"))).map(dateBetween(dateEnd(current.prop(\"Scheduled\")), dateStart(current.prop(\"Scheduled\")), \"minutes\") / 60), subGymHours, prop(\"Events\").map(current.prop(\"Sub Event\").filter(current.prop(\"Facility\") == \"Gym\" and not empty(current.prop(\"Scheduled\")) and current.prop(\"Status\") == \"Confirmed\").map(dateBetween(dateEnd(current.prop(\"Scheduled\")), dateStart(current.prop(\"Scheduled\")), \"minutes\") / 60)).flat(), round(sum(mainGymHours.concat(subGymHours)), 2))"
+   }
+  },
+  "Shadow Coach Fee Basis": {
+   "id": "RVP%5B",
+   "name": "Shadow Coach Fee Basis",
+   "description": "Reason code for the shadow coach-fee result.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Director",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "IZ|n",
+      "name": "Below threshold",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "Y?Gc",
+      "name": "Percentage",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "Lsc_",
+      "name": "Base-rate floor",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "Mjwi",
+      "name": "Match multiplier",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "_h\\C",
+      "name": "Academy percentage",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "\\tEC",
+      "name": "Invalid",
+      "color": "red",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Court Rental (IDR)": {
+   "id": "R%5Ewz",
+   "name": "Court Rental (IDR)",
+   "description": "Amount paid to club for court rental. Flat: On Court Hours \u00d7 Court Hourly Rate (one court per session regardless of headcount). 0 when Revenue Scope = Combined. 0 when Sale Type = Coaches Academy (explicit guard \u2014 CA has no court cost). v11: multiplier removed. CA guard added 1 Jul 2026.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  revenueScope, prop(\"Revenue Scope\"),\n  saleType, prop(\"Sale Type\"),\n  ifs(\n    not prop(\"Financial Release Ready\"), 0,\n    saleType == \"Coaches Academy\", 0,\n    revenueScope == \"Combined\", 0,\n    empty(prop(\"Financial Pricing Hours\")), 0,\n    empty(prop(\"Court Hourly Rate (IDR)\")), 0,\n    round(prop(\"Financial Pricing Hours\") * prop(\"Court Hourly Rate (IDR)\"), 0)\n  )\n)"
+   }
+  },
+  "Wallet 1 Used (IDR)": {
+   "id": "SDFi",
+   "name": "Wallet 1 Used (IDR)",
+   "description": "Sum of explicit Wallet 1 Draw values from Item children. Internal Wallets 2.0 aggregation helper.",
+   "type": "rollup",
+   "rollup": {
+    "rollup_property_name": "Wallet 1 Draw (IDR)",
+    "relation_property_name": "Item",
+    "rollup_property_id": "]>^;",
+    "relation_property_id": "{;SB",
+    "function": "sum"
+   }
+  },
+  "Match with Coach SC (IDR PP)": {
+   "id": "SgSr",
+   "name": "Match with Coach SC (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "UI: \u2465 Tacit Discount (IDR)": {
+   "id": "SuDw",
+   "name": "UI: \u2465 Tacit Discount (IDR)",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")), empty(),\n  \"\u2465 Tacit Discount (IDR): \" + \n  if(empty(prop(\"Tacit Discount (IDR)\")),\n    \"0\",\n    format(round(prop(\"Tacit Discount (IDR)\"), 0))\n  )\n)"
+   }
+  },
+  "VAT (IDR)": {
+   "id": "S%7BjH",
+   "name": "VAT (IDR)",
+   "description": "Academy Fees \u00d7 VAT %. 0% default when VAT % is empty. Hardcoded 0.11 fallback removed.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Academy Fees (IDR)\")) or prop(\"Academy Fees (IDR)\") <= 0, 0, round(prop(\"Academy Fees (IDR)\") * if(empty(prop(\"VAT %\")), 0, prop(\"VAT %\")), 0))"
+   }
+  },
+  "Basic (Off Court Hours)": {
+   "id": "T%3Fzz",
+   "name": "Basic (Off Court Hours)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Senior Coach 1:1 (IDR PP)": {
+   "id": "TEjO",
+   "name": "Senior Coach 1:1 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Shadow Expected Coach Fee (IDR)": {
+   "id": "T%5B_p",
+   "name": "Shadow Expected Coach Fee (IDR)",
+   "description": "Expected coach compensation under the target calculation. Shadow only.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Instructor 1:3 (IDR PP)": {
+   "id": "T%5CsT",
+   "name": "Instructor 1:3 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Paid Students": {
+   "id": "TdAf",
+   "name": "Paid Students",
+   "description": "Count of student booking (Revenue) rows linked to this Cost row via the Item relation. Court Contribution numerator input: the 'Paid Students' term in max(Court Rental \u2212 (Court Rental \u00f7 Event Capacity) \u00d7 Paid Students, 0). Applies on the Cost row only. Added 1 Jul 2026 (WS1, authorised under Nick's Section 7 sign-off). Counts all linked Item rows; any confirmed-only refinement is handled in Felix's Court Contribution formula.",
+   "type": "rollup",
+   "rollup": {
+    "rollup_property_name": "Students",
+    "relation_property_name": "Item",
+    "rollup_property_id": "m;GB",
+    "relation_property_id": "{;SB",
+    "function": "show_original"
+   }
+  },
+  "UI: \u2460 Total Income (IDR)": {
+   "id": "Tdk%3E",
+   "name": "UI: \u2460 Total Income (IDR)",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")),\n  empty(),\n  style(\"\u2460 Total Income (IDR): \" + format(round(prop(\"Total Income (IDR)\"), 0)), \"b\")\n)"
+   }
+  },
+  "Senior Coach Basic (IDR PP)": {
+   "id": "TtPP",
+   "name": "Senior Coach Basic (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Payment Verification Note": {
+   "id": "UIZL",
+   "name": "Payment Verification Note",
+   "description": "Concise evidence or director-confirmation note supporting payment verification.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "UI: \u2468 Shared Net Sales (IDR)": {
+   "id": "V_Ro",
+   "name": "UI: \u2468 Shared Net Sales (IDR)",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")), empty(), style(\"\u2468 Shared Net Sales (IDR): \" + format(round(prop(\"Shared Net Sales (IDR)\"), 0)), \"b\", \"green\"))"
+   }
+  },
+  "Min. Access": {
+   "id": "Vbh%3F",
+   "name": "Min. Access",
+   "description": "Outputs the minimum access group detected across Can Edit/Can Comment/Can View.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  /* Combine all people from access properties and get their display names */\n  allAccessNames, concat(prop(\"Can Edit\"), prop(\"Can Comment\"), prop(\"Can View\"))\n    .map(current.name()),\n  /* Check for group membership in priority order */\n  ifs(\n    allAccessNames.includes(\"Team\"), \"Team\",\n    allAccessNames.includes(\"Leadership\"), \"Leadership\",\n    allAccessNames.includes(\"Owners\"), \"Owners\",\n    \"Admin\"\n  )\n)"
+   }
+  },
+  "Payment Verified By": {
+   "id": "V%7BWX",
+   "name": "Payment Verified By",
+   "description": "The named person who verified payment.",
+   "type": "people",
+   "people": {}
+  },
+  "Payment Processing Page ID": {
+   "id": "V%7DN%3E",
+   "name": "Payment Processing Page ID",
+   "description": "Technical helper for Payment V1. Emits this Sale page's unhyphenated Notion UUID through id(); the Tacit Payment V1 Automation Worker normalises it and uses it to retrieve the exact Sale triggered by Payment Processing Status = Ready to process. Webhook Content must include this property only. Do not edit.",
+   "type": "formula",
+   "formula": {
+    "expression": "id()"
+   }
+  },
+  "Instructor Premium (IDR PP)": {
+   "id": "WISb",
+   "name": "Instructor Premium (IDR PP)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Coach Basic (IDR PP)": {
+   "id": "W%5DTE",
+   "name": "Coach Basic (IDR PP)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "SKU": {
+   "id": "XPp%5C",
+   "name": "SKU",
+   "description": "Unique product identifier. TP- prefix + zero-padded 6-digit auto-increment ID. Simplified post-Decision 5 (no parent/child Product/Sale).",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  digits, prop(\"ID\").replaceAll(\"[^0-9]\", \"\"),\n  \"TP-\" + repeat(\"0\", max(0, 6 - digits.length())) + digits\n)"
+   }
+  },
+  "UI: \u246e Tacit Gross Profit (IDR)": {
+   "id": "XTxD",
+   "name": "UI: \u246e Tacit Gross Profit (IDR)",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")) or empty(prop(\"Tacit Gross Profit (IDR)\")), empty(), style(\"\u246e Tacit Gross Profit (IDR): \" + format(round(prop(\"Tacit Gross Profit (IDR)\"), 0)), \"b\", \"green\"))"
+   }
+  },
+  "Match with Coach Coach (IDR PP)": {
+   "id": "Xk%5Ek",
+   "name": "Match with Coach Coach (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Tacit List Price (IDR)": {
+   "id": "Y%40Xm",
+   "name": "Tacit List Price (IDR)",
+   "description": "Students \u00d7 Coaching Rate \u00d7 Hours. Coaching-only revenue before discounts. Excludes court costs. v11: Clinic added to hours-multiplied branch. Deployed 1 Jul 2026.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  walletValue, prop(\"Wallet Value (IDR)\"),\n  isWalletParent, not empty(walletValue),\n  if(prop(\"Sale Status\") == \"Cancelled\",\n    0,\n    if(isWalletParent,\n      walletValue,\n      lets(\n        studentCount, prop(\"Students\").length(),\n        saleType, prop(\"Sale Type\"),\n        if(studentCount == 0 or empty(prop(\"Effective Coaching Rate (IDR)\")),\n          0,\n          if(saleType == \"Private Lesson\" or saleType == \"Clinic\",\n            round(studentCount * prop(\"Effective Coaching Rate (IDR)\") * prop(\"Financial Pricing Hours\")),\n            round(studentCount * prop(\"Effective Coaching Rate (IDR)\"))\n          )\n        )\n      )\n    )\n  )\n)"
+   }
+  },
+  "Match with Coach Instructor (IDR PP)": {
+   "id": "ZdGK",
+   "name": "Match with Coach Instructor (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Wallet Credit Draw (IDR)": {
+   "id": "Zhpc",
+   "name": "Wallet Credit Draw (IDR)",
+   "description": "Exact monetary wallet credit consumed by an eligible non-cancelled Private Lesson Sale. Equals Tacit Discount (IDR).",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  parentWalletRows, prop(\"Group\").filter(not empty(current.prop(\"Wallet Value (IDR)\")) and current.prop(\"Sale Role\") == \"Wallet\" and current.prop(\"Sale Status\") != \"Cancelled\"),\n  parentWalletType, if(parentWalletRows.length() == 1, parentWalletRows.map(current.prop(\"Wallet Type\")).first(), \"\"),\n  activeFiniteWallet, parentWalletType == \"EPA Late 26\" or parentWalletType == \"Proklamasi 26\" or parentWalletType == \"1945 26\" or parentWalletType == \"Garuda 26\",\n  eligibleChild, empty(prop(\"Wallet Value (IDR)\")) and parentWalletRows.length() == 1 and activeFiniteWallet and prop(\"Sale Type\") == \"Private Lesson\" and prop(\"Discount Reason\").includes(\"Wallet: Paid\"),\n  if(not eligibleChild or prop(\"Sale Status\") == \"Cancelled\", empty(),\n    round(if(empty(prop(\"Tacit Discount (IDR)\")), 0, prop(\"Tacit Discount (IDR)\")), 0)\n  )\n)"
+   }
+  },
+  "Created time": {
+   "id": "ZkbA",
+   "name": "Created time",
+   "description": null,
+   "type": "created_time",
+   "created_time": {}
+  },
+  "Head Coach Basic (IDR PP)": {
+   "id": "Zlsc",
+   "name": "Head Coach Basic (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Club Net Sales (IDR)": {
+   "id": "%5BKy%60",
+   "name": "Club Net Sales (IDR)",
+   "description": "Club's PROTECTED share = round(protectedNetSales \u00d7 Club %). v11.1 (9 Jul 2026): court no longer deducted \u2014 club bears none of the underfill and receives the full court rental separately.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  bs, prop(\"Balance Sheet\"),\n  hasAccess, bs.length() > 0,\n  if(not hasAccess, 0,\n    lets(\n      clubPct, if(empty(prop(\"Club %\")), 0, prop(\"Club %\")),\n      protectedAcademyFees, prop(\"Tacit List Price (IDR)\") * (1 - if(empty(prop(\"Shared Discount %\")), 0, prop(\"Shared Discount %\"))),\n      protectedNetSales, protectedAcademyFees * (1 - if(empty(prop(\"VAT %\")), 0, prop(\"VAT %\")) - if(empty(prop(\"Platform Commission %\")), 0, prop(\"Platform Commission %\")) - if(empty(prop(\"Transaction Fee %\")), 0, prop(\"Transaction Fee %\"))),\n      if(prop(\"Sale Role\") == \"Cost\", 0, round(protectedNetSales * clubPct, 0))\n    )\n  )\n)"
+   }
+  },
+  "Wallet 2": {
+   "id": "%5BMd%3B",
+   "name": "Wallet 2",
+   "description": "Optional second wallet parent for a Private Lesson. Limit one. Group remains Wallet 1.",
+   "type": "relation",
+   "relation": {
+    "database_id": "261afdfb-c3c7-81e0-ac1c-f1a3c5cbc97c",
+    "data_source_id": "261afdfb-c3c7-81d5-b4a7-000b0f69814f",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Wallet 2 Item",
+     "synced_property_id": "%5EGZ%5C"
+    }
+   }
+  },
+  "Third Party Net Sales (IDR)": {
+   "id": "%5Bz%40D",
+   "name": "Third Party Net Sales (IDR)",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  bs, prop(\"Balance Sheet\"),\n  hasAccess, bs.length() > 0,\n  if(not hasAccess, 0,\n    lets(\n      thirdPartyPct, if(empty(prop(\"Third Party %\")), 0, prop(\"Third Party %\")),\n      protectedAcademyFees, prop(\"Tacit List Price (IDR)\") * (1 - if(empty(prop(\"Shared Discount %\")), 0, prop(\"Shared Discount %\"))),\n      protectedNetSales, protectedAcademyFees * (1 - if(empty(prop(\"VAT %\")), 0, prop(\"VAT %\")) - if(empty(prop(\"Platform Commission %\")), 0, prop(\"Platform Commission %\")) - if(empty(prop(\"Transaction Fee %\")), 0, prop(\"Transaction Fee %\"))),\n      if(prop(\"Sale Role\") == \"Cost\", 0, round(protectedNetSales * thirdPartyPct, 0))\n    )\n  )\n)"
+   }
+  },
+  "Community Funding (IDR)": {
+   "id": "%5CLLZ",
+   "name": "Community Funding (IDR)",
+   "description": "10% of Tacit Gross Profit allocated to community reinvestment. Hardcoded per v8 framework. Added 2 May 2026.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(bs, prop(\"Balance Sheet\"), hasAccess, bs.length() > 0, if(!hasAccess, 0, round(max(prop(\"Tacit Gross Profit (IDR)\"), 0) * 0.1)))"
+   }
+  },
+  "ID": {
+   "id": "%5Cb%5E_",
+   "name": "ID",
+   "description": null,
+   "type": "unique_id",
+   "unique_id": {
+    "prefix": "TP"
+   }
+  },
+  "Price Per Student (IDR)": {
+   "id": "%5D%3Cav",
+   "name": "Price Per Student (IDR)",
+   "description": "Calculated price per student based on coach level, group size, and session duration from linked Events",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  saleType, {{notion:block_property:F%3Fuv:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n  /* Get coach level from first coach in Coaches relation */\n  coachLevel, {{notion:block_property:Xqp%7C:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}.first().{{notion:block_property:Lx%40J:261afdfb-c3c7-81f8-8cda-000ba9e72403:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n  /* Count students from Students relation */\n  studentCount, {{notion:block_property:m%3BGB:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}.length(),\n  /* Determine student ratio based on count */\n  studentRatio, ifs(\n    studentCount == 1, \"1:1\",\n    studentCount == 2, \"1:2\",\n    studentCount == 3, \"1:3\",\n    studentCount >= 4, \"1:4\",\n    \"1:1\"\n  ),\n  tier, {{notion:block_property:wvzf:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n  /* Clinic ratio from planned Event Capacity; blank when capacity missing so the clinic row blocks (price 0) per the block-the-row rule */\n  clinicRatio, if(\n    empty({{notion:block_property:JMFu:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n    \"\",\n    \"1:\" + format({{notion:block_property:JMFu:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}.first())\n  ),\n  /* Return price per student based on all conditions */\n  ifs(\n    {{notion:block_property:U%3DGM:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}.map(current.format()).first() == \"Overseas Clubs\" and\n    {{notion:block_property:hsZx:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}.map(current.format()).first() == \"Serve Padel Club\",\n    {{notion:block_property:bc~E:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Clinic\" and {{notion:block_property:G%3BR%7C:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Combined\",\n    {{notion:block_property:jG%3C%3D:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Private Lesson\" and coachLevel == \"Head Coach\" and studentRatio == \"1:1\",\n    {{notion:block_property:kFIv:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Head Coach\" and studentRatio == \"1:2\",\n    {{notion:block_property:~DFB:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Head Coach\" and studentRatio == \"1:3\",\n    {{notion:block_property:wjlb:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Head Coach\" and studentRatio == \"1:4\",\n    {{notion:block_property:PQ%3FG:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Private Lesson\" and coachLevel == \"Senior Coach\" and studentRatio == \"1:1\",\n    {{notion:block_property:TEjO:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Senior Coach\" and studentRatio == \"1:2\",\n    {{notion:block_property:K~%3D%3B:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Senior Coach\" and studentRatio == \"1:3\",\n    {{notion:block_property:%5DQHi:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Senior Coach\" and studentRatio == \"1:4\",\n    {{notion:block_property:pgMz:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Private Lesson\" and coachLevel == \"Coach\" and studentRatio == \"1:1\",\n    {{notion:block_property:nksW:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Coach\" and studentRatio == \"1:2\",\n    {{notion:block_property:%7CY%7DA:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Coach\" and studentRatio == \"1:3\",\n    {{notion:block_property:Kf%3Di:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Coach\" and studentRatio == \"1:4\",\n    {{notion:block_property:saDm:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Private Lesson\" and coachLevel == \"Instructor\" and studentRatio == \"1:1\",\n    {{notion:block_property:pfMR:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Instructor\" and studentRatio == \"1:2\",\n    {{notion:block_property:%3FXBN:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Instructor\" and studentRatio == \"1:3\",\n    {{notion:block_property:T%5CsT:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Instructor\" and studentRatio == \"1:4\",\n    {{notion:block_property:oW%40L:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Private Lesson\" and coachLevel == \"Trainee\" and studentRatio == \"1:1\",\n    {{notion:block_property:bV%7D%3E:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Trainee\" and studentRatio == \"1:2\",\n    {{notion:block_property:NfqW:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Trainee\" and studentRatio == \"1:3\",\n    {{notion:block_property:J%7DN%7C:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Private Lesson\" and coachLevel == \"Trainee\" and studentRatio == \"1:4\",\n    {{notion:block_property:%3BoIn:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Player Academy\" and coachLevel == \"Head Coach\" and tier == \"Starter\",\n    {{notion:block_property:Ehyj:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Head Coach\" and tier == \"Basic\",\n    {{notion:block_property:Zlsc:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Head Coach\" and tier == \"Standard\",\n    {{notion:block_property:~CbF:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Head Coach\" and tier == \"Premium\",\n    {{notion:block_property:HfYo:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Head Coach\" and tier == \"Pro\",\n    {{notion:block_property:aKOI:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Player Academy\" and coachLevel == \"Senior Coach\" and tier == \"Starter\",\n    {{notion:block_property:iCIc:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Senior Coach\" and tier == \"Basic\",\n    {{notion:block_property:TtPP:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Senior Coach\" and tier == \"Standard\",\n    {{notion:block_property:Ktu%60:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Senior Coach\" and tier == \"Premium\",\n    {{notion:block_property:adN_:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Senior Coach\" and tier == \"Pro\",\n    {{notion:block_property:yEhD:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Player Academy\" and coachLevel == \"Coach\" and tier == \"Starter\",\n    {{notion:block_property:_l%7CB:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Coach\" and tier == \"Basic\",\n    {{notion:block_property:W%5DTE:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Coach\" and tier == \"Standard\",\n    {{notion:block_property:%3Adkn:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Coach\" and tier == \"Premium\",\n    {{notion:block_property:%60soR:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Coach\" and tier == \"Pro\",\n    {{notion:block_property:P%60M%3E:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Player Academy\" and coachLevel == \"Instructor\" and tier == \"Starter\",\n    {{notion:block_property:%3AsXN:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Instructor\" and tier == \"Basic\",\n    {{notion:block_property:Nec%7D:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Instructor\" and tier == \"Standard\",\n    {{notion:block_property:Gyll:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Instructor\" and tier == \"Premium\",\n    {{notion:block_property:WISb:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Player Academy\" and coachLevel == \"Instructor\" and tier == \"Pro\",\n    {{notion:block_property:%3Az%3DN:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Coaches Academy\",\n    {{notion:block_property:%40yOC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Clinic\" and coachLevel == \"Head Coach\" and clinicRatio == \"1:1\",\n    {{notion:block_property:kFIv:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Head Coach\" and clinicRatio == \"1:2\",\n    {{notion:block_property:~DFB:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Head Coach\" and clinicRatio == \"1:3\",\n    {{notion:block_property:wjlb:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Head Coach\" and clinicRatio == \"1:4\",\n    {{notion:block_property:PQ%3FG:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Clinic\" and coachLevel == \"Senior Coach\" and clinicRatio == \"1:1\",\n    {{notion:block_property:TEjO:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Senior Coach\" and clinicRatio == \"1:2\",\n    {{notion:block_property:K~%3D%3B:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Senior Coach\" and clinicRatio == \"1:3\",\n    {{notion:block_property:%5DQHi:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Senior Coach\" and clinicRatio == \"1:4\",\n    {{notion:block_property:pgMz:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Clinic\" and coachLevel == \"Coach\" and clinicRatio == \"1:1\",\n    {{notion:block_property:nksW:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Coach\" and clinicRatio == \"1:2\",\n    {{notion:block_property:%7CY%7DA:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Coach\" and clinicRatio == \"1:3\",\n    {{notion:block_property:Kf%3Di:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Coach\" and clinicRatio == \"1:4\",\n    {{notion:block_property:saDm:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Clinic\" and coachLevel == \"Instructor\" and clinicRatio == \"1:1\",\n    {{notion:block_property:pfMR:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Instructor\" and clinicRatio == \"1:2\",\n    {{notion:block_property:%3FXBN:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Instructor\" and clinicRatio == \"1:3\",\n    {{notion:block_property:T%5CsT:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Instructor\" and clinicRatio == \"1:4\",\n    {{notion:block_property:oW%40L:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Clinic\" and coachLevel == \"Trainee\" and clinicRatio == \"1:1\",\n    {{notion:block_property:bV%7D%3E:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Trainee\" and clinicRatio == \"1:2\",\n    {{notion:block_property:NfqW:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Trainee\" and clinicRatio == \"1:3\",\n    {{notion:block_property:J%7DN%7C:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Clinic\" and coachLevel == \"Trainee\" and clinicRatio == \"1:4\",\n    {{notion:block_property:%3BoIn:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Match with Coach\" and coachLevel == \"Head Coach\",\n    {{notion:block_property:%3BLWb:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Match with Coach\" and coachLevel == \"Senior Coach\",\n    {{notion:block_property:SgSr:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Match with Coach\" and coachLevel == \"Coach\",\n    {{notion:block_property:Xk%5Ek:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    saleType == \"Match with Coach\" and coachLevel == \"Instructor\",\n    {{notion:block_property:ZdGK:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    saleType == \"Play with Coach\",\n    {{notion:block_property:%3CvpU:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n\n    0\n  )\n)"
+   }
+  },
+  "Wallet 1 Draw (IDR)": {
+   "id": "%5D%3E%5E%3B",
+   "name": "Wallet 1 Draw (IDR)",
+   "description": "Exact monetary contribution from Group / Wallet 1 to this lesson Sale. Stored by Basil after final balance recheck.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Platform Commission %": {
+   "id": "%5DJug",
+   "name": "Platform Commission %",
+   "description": "Percentage deducted for booking platform commission (e.g., Courtside, Playtomic)",
+   "type": "number",
+   "number": {
+    "format": "percent"
+   }
+  },
+  "Senior Coach 1:3 (IDR PP)": {
+   "id": "%5DQHi",
+   "name": "Senior Coach 1:3 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Premium (Off Court Hours)": {
+   "id": "%5DT%7CP",
+   "name": "Premium (Off Court Hours)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Wallet 2 Item": {
+   "id": "%5EGZ%5C",
+   "name": "Wallet 2 Item",
+   "description": "Inverse list of lesson Sales funded from this wallet through the Wallet 2 slot.",
+   "type": "relation",
+   "relation": {
+    "database_id": "261afdfb-c3c7-81e0-ac1c-f1a3c5cbc97c",
+    "data_source_id": "261afdfb-c3c7-81d5-b4a7-000b0f69814f",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Wallet 2",
+     "synced_property_id": "%5BMd%3B"
+    }
+   }
+  },
+  "Court Contribution (IDR)": {
+   "id": "%5EfZU",
+   "name": "Court Contribution (IDR)",
+   "description": "Court contribution, context-aware by Sale Role (\u2461 model, v11.1). Cost row = the court underfill borne 100% by Tacit: max(Court Rental \u2212 (Court Rental \u00f7 Event Capacity) \u00d7 Paid Students, 0), booked once to the Balance Sheet via Sales: BS (via Cost). Revenue row = this seat's court charge to the club: Court Rental \u00f7 Event Capacity. Outside the coaching waterfall \u2014 does not reduce Academy Fees, VAT, or the split; the club always receives the full court rental. Guard OFF (Nick, 9 Jul): exact division, no per-seat rounding. Renamed Court Costs \u2192 Court Contribution (10 Jul 2026, WS1-R4 \u2014 value-invariant cosmetic rename; both rows read as contributions to the shared court pool: player contributes, Tacit tops up shortfalls, club keeps surplus). Originally Court Subsidy.",
+   "type": "formula",
+   "formula": {
+    "expression": "ifs(\n  prop(\"Sale Role\") == \"Cost\",\n  lets(\n    courtRental, if(empty(prop(\"Court Rental (IDR)\")), 0, prop(\"Court Rental (IDR)\")),\n    collected, prop(\"Item\").map(current.prop(\"Court Contribution (IDR)\")).sum(),\n    max(courtRental - collected, 0)\n  ),\n  prop(\"Sale Role\") == \"Revenue\",\n  if(prop(\"Sale Type\") == \"Clinic\",\n    if(empty(prop(\"Effective Coaching Rate (IDR)\")) or empty(prop(\"Clinic (IDR PP)\")), 0,\n      round((prop(\"Clinic (IDR PP)\") - prop(\"Effective Coaching Rate (IDR)\")) * prop(\"Financial Pricing Hours\"), 0)\n    ),\n    lets(\n      parentRow, prop(\"Group\").first(),\n      if(empty(parentRow), 0,\n        lets(\n          parentCourtRental, if(empty(parentRow.prop(\"Court Rental (IDR)\")), 0, parentRow.prop(\"Court Rental (IDR)\")),\n          parentCapacity, if(empty(parentRow.prop(\"Event Capacity\")), 0, parentRow.prop(\"Event Capacity\").first()),\n          if(parentCapacity == 0, 0, parentCourtRental / parentCapacity)\n        )\n      )\n    )\n  ),\n  0\n)"
+   }
+  },
+  "Target Financial Purpose": {
+   "id": "_%3A%7DO",
+   "name": "Target Financial Purpose",
+   "description": "Target-state financial role. Shadow only; does not alter current ledger routes.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Revenue Charge",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "IZ|n",
+      "name": "Coach Compensation",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "Y?Gc",
+      "name": "Court Settlement",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "Lsc_",
+      "name": "Wallet Funding",
+      "color": "purple",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Starter (On Court Hours)": {
+   "id": "_Aiu",
+   "name": "Starter (On Court Hours)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Revenue Date": {
+   "id": "_EsY",
+   "name": "Revenue Date",
+   "description": "The date revenue is attributed to. For private lessons, this is the session date. For academies, this is the programme start date. Used as the X-axis for chart views (native date required \u2014 formulas and rollups cannot be used for chart date grouping).",
+   "type": "date",
+   "date": {}
+  },
+  "Target Source Revision": {
+   "id": "_%5Ds%5B",
+   "name": "Target Source Revision",
+   "description": "Source revision marker used for target-state validation.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Coach Starter (IDR PP)": {
+   "id": "_l%7CB",
+   "name": "Coach Starter (IDR PP)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Effective Coaching Rate (IDR)": {
+   "id": "%60RTF",
+   "name": "Effective Coaching Rate (IDR)",
+   "description": "Payment V1 uses its immutable resolved coaching-rate snapshot; Legacy continues to use Price Per Student unchanged.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(\n  prop(\"Financial Route\") == \"Payment V1\",\n  if(empty(prop(\"Resolved Coaching Rate (IDR)\")), empty(), prop(\"Resolved Coaching Rate (IDR)\")),\n  prop(\"Price Per Student (IDR)\")\n)"
+   }
+  },
+  "Sale Split": {
+   "id": "%60TVS",
+   "name": "Sale Split",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  t, if(empty(prop(\"Tacit %\")), 0, round(prop(\"Tacit %\") * 100)),\n  c, if(empty(prop(\"Club %\")), 0, round(prop(\"Club %\") * 100)),\n  tp, if(empty(prop(\"Third Party %\")), 0, round(prop(\"Third Party %\") * 100)),\n  \"Tacit \" + format(t) + \"% \u00b7 Club \" + format(c) + \"% \u00b7 Third Party \" + format(tp) + \"%\"\n)"
+   }
+  },
+  "Coach Premium (IDR PP)": {
+   "id": "%60soR",
+   "name": "Coach Premium (IDR PP)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Price List": {
+   "id": "aDqJ",
+   "name": "Price List",
+   "description": "Price period used to resolve this Sale. Preserved as transaction history.",
+   "type": "relation",
+   "relation": {
+    "database_id": "3f2afdfb-c3c7-807e-808e-d85944555557",
+    "data_source_id": "4baafdfb-c3c7-820b-b36b-07519bd502aa",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Applied Sales",
+     "synced_property_id": "V%3CWN"
+    }
+   }
+  },
+  "Head Coach Pro (IDR PP)": {
+   "id": "aKOI",
+   "name": "Head Coach Pro (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Last edited time": {
+   "id": "aKeN",
+   "name": "Last edited time",
+   "description": null,
+   "type": "last_edited_time",
+   "last_edited_time": {}
+  },
+  "Shared Net Sales (IDR)": {
+   "id": "aLCz",
+   "name": "Shared Net Sales (IDR)",
+   "description": "Academy Fees \u2212 VAT \u2212 Platform Commission \u2212 Transaction Fees. Pre-split amount. v11.1 (9 Jul 2026): court deduction removed \u2014 court is out of the coaching waterfall.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Academy Fees (IDR)\")), 0,\n  prop(\"Academy Fees (IDR)\") -\n  if(empty(prop(\"VAT (IDR)\")), 0, prop(\"VAT (IDR)\")) -\n  prop(\"Academy Fees (IDR)\") * if(empty(prop(\"Platform Commission %\")), 0, prop(\"Platform Commission %\")) -\n  prop(\"Academy Fees (IDR)\") * if(empty(prop(\"Transaction Fee %\")), 0, prop(\"Transaction Fee %\"))\n)"
+   }
+  },
+  "Sale Role": {
+   "id": "aTmR",
+   "name": "Sale Role",
+   "description": "Wallet = prepaid credit parent (holds Wallet Value; child bookings link to it via the Group relation). Cost = fee-only record created at event creation (no student). Revenue = student booking row (no fee). Blank = safe default (treated as full fee).",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "S\\[N",
+      "name": "Wallet",
+      "color": "purple",
+      "description": ""
+     },
+     {
+      "id": "J:FN",
+      "name": "Cost",
+      "color": "orange",
+      "description": ""
+     },
+     {
+      "id": "IZ|n",
+      "name": "Revenue",
+      "color": "green",
+      "description": ""
+     }
+    ]
+   }
+  },
+  "Shadow Coach Fee Basis 2": {
+   "id": "aVI%5D",
+   "name": "Shadow Coach Fee Basis 2",
+   "description": "Reason code for the second coach-fee result.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Director",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "IZ|n",
+      "name": "Below threshold",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "Y?Gc",
+      "name": "Percentage",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "Lsc_",
+      "name": "Base-rate floor",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "Mjwi",
+      "name": "Match multiplier",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "_h\\C",
+      "name": "Academy percentage",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "\\tEC",
+      "name": "Invalid",
+      "color": "red",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Financial Release Ready": {
+   "id": "aXXl",
+   "name": "Financial Release Ready",
+   "description": "Controlled payment-release gate. Legacy rows release only when confirmed; Payment V1 paid-pending release is limited to eligible Revenue and linked Cost rows.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  paymentVerified,\n    not empty(prop(\"Payment Verified At\")) and\n    not empty(prop(\"Payment Verified By\")),\n  financiallyChargeable,\n    prop(\"Sale Status\") != \"Cancelled\",\n  supportedPaidPendingType,\n    prop(\"Sale Type\") == \"Clinic\" or\n    prop(\"Sale Type\") == \"Coaches Academy\" or\n    prop(\"Sale Type\") == \"Play with Coach\",\n  eligibleV1PaidPlace,\n    prop(\"Financial Route\") == \"Payment V1\" and\n    prop(\"Sale Role\") == \"Revenue\" and\n    prop(\"Event Status\") == \"Pending\" and\n    supportedPaidPendingType and\n    financiallyChargeable and\n    paymentVerified,\n  eligibleV1SharedCost,\n    prop(\"Financial Route\") == \"Payment V1\" and\n    prop(\"Sale Role\") == \"Cost\" and\n    prop(\"Event Status\") == \"Pending\" and\n    supportedPaidPendingType and\n    prop(\"Item\").filter(\n      current.prop(\"Sale Role\") == \"Revenue\" and\n      current.prop(\"Sale Status\") != \"Cancelled\" and\n      not empty(current.prop(\"Payment Verified At\")) and\n      not empty(current.prop(\"Payment Verified By\"))\n    ).length() > 0,\n  financiallyChargeable and (\n    prop(\"Event Status\") == \"Confirmed\" or\n    eligibleV1PaidPlace or\n    eligibleV1SharedCost\n  )\n)"
+   }
+  },
+  "Senior Coach Premium (IDR PP)": {
+   "id": "adN_",
+   "name": "Senior Coach Premium (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "VAT %": {
+   "id": "adye",
+   "name": "VAT %",
+   "description": "VAT rate. Default 0% (Pricing template). Tacit Padel is below the IDR 4.8B threshold \u2014 no VAT charged. Configurable per product if/when threshold is crossed. Updated 20 Apr 2026 \u2014 was incorrectly described as '11% in Indonesia'.",
+   "type": "number",
+   "number": {
+    "format": "percent"
+   }
+  },
+  "Academy Fees (IDR)": {
+   "id": "aqmG",
+   "name": "Academy Fees (IDR)",
+   "description": "Actual coaching revenue after all discounts. VAT and Net Sales calculated from this. Consolidates discount logic (2 Feb 2026).",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  /* Get base values with defaults */\n  listPrice, if(empty(prop(\"Tacit List Price (IDR)\")), 0, prop(\"Tacit List Price (IDR)\")),\n  offPeakDiscount, if(empty(prop(\"Shared Discount %\")), 0, prop(\"Shared Discount %\")),\n  discretionaryDiscount, if(empty(prop(\"Tacit Discount %\")), 0, prop(\"Tacit Discount %\")),\n  /* Apply off-peak discount first */\n  afterOffPeak, listPrice * (1 - offPeakDiscount),\n  /* Apply discretionary discount and round */\n  round(afterOffPeak * (1 - discretionaryDiscount), 0)\n)"
+   }
+  },
+  "Target Source Key": {
+   "id": "aysk",
+   "name": "Target Source Key",
+   "description": "Stable source record key for target-state provenance.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Coaches Fee Waterfall (IDR)": {
+   "id": "b%3AQB",
+   "name": "Coaches Fee Waterfall (IDR)",
+   "description": "Gate formula. Returns 0 for Revenue rows (student bookings carry no coach cost). Returns Coaches Fee (IDR) rollup for Cost, Wallet, and blank rows. Blank defaults to full fee \u2014 safe for all existing unstamped records.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(\n  prop(\"Financial Route\") == \"Payment V1\",\n  if(\n    prop(\"Shadow Validation State\") == \"Ready\",\n    round(\n      (empty(prop(\"Shadow Expected Coach Fee (IDR)\")) ? 0 : prop(\"Shadow Expected Coach Fee (IDR)\")) +\n      (empty(prop(\"Shadow Expected Coach Fee 2 (IDR)\")) ? 0 : prop(\"Shadow Expected Coach Fee 2 (IDR)\"))\n    ),\n    0\n  ),\n  if(\n    prop(\"Sale Role\") == \"Revenue\",\n    0,\n    prop(\"Events\").map(current.prop(\"Coaches Fee (IDR)\")).sum()\n  )\n)"
+   }
+  },
+  "UI: \u2467 VAT (IDR)": {
+   "id": "bQ%3Fe",
+   "name": "UI: \u2467 VAT (IDR)",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")),\n  \"\",\n  \"\u2467 VAT (IDR): \" + format(round(prop(\"VAT (IDR)\"), 0))\n)"
+   }
+  },
+  "Premium (On Court Hours)": {
+   "id": "bQkZ",
+   "name": "Premium (On Court Hours)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Trainee 1:1 (IDR PP)": {
+   "id": "bV%7D%3E",
+   "name": "Trainee 1:1 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "March 2026 Lessons (IDR)": {
+   "id": "bc~E",
+   "name": "March 2026 Lessons (IDR)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Wallet Credit Used (IDR)": {
+   "id": "cGdV",
+   "name": "Wallet Credit Used (IDR)",
+   "description": "Wallets 2.0 total used credit. Sums Wallet 1 slot draws through Item, legacy aggregate draws when both slot fields are blank, and Wallet 2 slot draws through Wallet 2 Item. Cancelled children are excluded.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  activeFiniteWallet, prop(\"Wallet Type\") == \"EPA Late 26\" or prop(\"Wallet Type\") == \"Proklamasi 26\" or prop(\"Wallet Type\") == \"1945 26\" or prop(\"Wallet Type\") == \"Garuda 26\",\n  isWalletParent, activeFiniteWallet and prop(\"Sale Role\") == \"Wallet\" and not empty(prop(\"Wallet Value (IDR)\")),\n  wallet1Explicit, if(empty(prop(\"Wallet 1 Used (IDR)\")), 0, toNumber(prop(\"Wallet 1 Used (IDR)\"))),\n  wallet2Explicit, if(empty(prop(\"Wallet 2 Used (IDR)\")), 0, toNumber(prop(\"Wallet 2 Used (IDR)\"))),\n  legacyUsed, prop(\"Item\")\n    .filter(current.prop(\"Sale Status\") != \"Cancelled\" and empty(current.prop(\"Wallet 1 Draw (IDR)\")) and empty(current.prop(\"Wallet 2 Draw (IDR)\")))\n    .map(current.prop(\"Wallet Credit Draw (IDR)\"))\n    .sum(),\n  if(not isWalletParent, empty(), round(wallet1Explicit + wallet2Explicit + legacyUsed, 0))\n)"
+   }
+  },
+  "UI: \u246d Coaches Fee (IDR)": {
+   "id": "d%3F%5CT",
+   "name": "UI: \u246d Coaches Fee (IDR)",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(bs, prop(\"Balance Sheet\"), hasAccess, bs.length() > 0, if(empty(prop(\"Scheduled\")), empty(), style(\"\u246d Coaches Fee (IDR): \" + format(round(if(!hasAccess, 0, prop(\"Coaches Fee Waterfall (IDR)\")), 0)), \"b\", \"red\")))"
+   }
+  },
+  "Target Source Key 2": {
+   "id": "djgM",
+   "name": "Target Source Key 2",
+   "description": "Stable source identity for the second coach-compensation record. Shadow only.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Tacit Discount (IDR)": {
+   "id": "dziw",
+   "name": "Tacit Discount (IDR)",
+   "description": "IDR amount of the Tacit Discount (applied after Shared Discount). Tacit absorbs 100% of this discount.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  /* Get base values with safe defaults */\n  listPrice, if(empty(prop(\"Tacit List Price (IDR)\")), 0, prop(\"Tacit List Price (IDR)\")),\n  offPeakDiscount, if(empty(prop(\"Shared Discount %\")), 0, prop(\"Shared Discount %\")),\n  discretionaryDiscount, if(empty(prop(\"Tacit Discount %\")), 0, prop(\"Tacit Discount %\")),\n  /* Apply off-peak discount to get discounted coaching price */\n  discountedCoaching, listPrice * (1 - offPeakDiscount),\n  /* Calculate final discretionary discount amount and round */\n  round(discountedCoaching * discretionaryDiscount, 0)\n)"
+   }
+  },
+  "Year": {
+   "id": "efQe",
+   "name": "Year",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")),\n  \"\",\n  format(year(prop(\"Scheduled\")))\n)"
+   }
+  },
+  "Sale Status": {
+   "id": "fEkZ",
+   "name": "Sale Status",
+   "description": "Lifecycle status of this sale. Confirmed = paid and committed. Cancelled = cancelled (check Cancelled By). Late Cancellation = cancelled inside notice window. No-Show = customer did not attend.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "IZ|n",
+      "name": "Confirmed",
+      "color": "green",
+      "description": ""
+     },
+     {
+      "id": "Y?Gc",
+      "name": "Cancelled",
+      "color": "red",
+      "description": ""
+     },
+     {
+      "id": "Lsc_",
+      "name": "Late Cancellation",
+      "color": "orange",
+      "description": ""
+     },
+     {
+      "id": "Mjwi",
+      "name": "No-Show",
+      "color": "pink",
+      "description": ""
+     }
+    ]
+   }
+  },
+  "UI: \u246b Third Party Net Sales (IDR)": {
+   "id": "fOyg",
+   "name": "UI: \u246b Third Party Net Sales (IDR)",
+   "description": "Display formula for \u246b Third Party Net Sales. Red bold, only shows when Scheduled exists.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")) or empty(prop(\"Third Party Net Sales (IDR)\")), empty(), style(\"\u246b Third Party Net Sales (IDR): \" + format(round(prop(\"Third Party Net Sales (IDR)\"), 0)), \"b\", \"red\"))"
+   }
+  },
+  "Cancelled By": {
+   "id": "giGK",
+   "name": "Cancelled By",
+   "description": "Who initiated the cancellation. Student = customer cancelled. Tacit = Tacit cancelled (e.g. coach sick, below minimum). Club = the club/venue cancelled the session. Only set when Sale Status is Cancelled, Late Cancellation, or No-Show. Aligned with TP: Events \"Cancelled By...\" options 16 Jul 2026.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Student",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "IZ|n",
+      "name": "Tacit",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "Y?Gc",
+      "name": "Club",
+      "color": "green",
+      "description": null
+     }
+    ]
+   }
+  },
+  "UI: \u2464 Shared Discount (IDR)": {
+   "id": "hZFg",
+   "name": "UI: \u2464 Shared Discount (IDR)",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")),\n  empty(),\n  \"\u2464 Shared Discount (IDR): \" + format(round(prop(\"Shared Discount (IDR)\"), 0))\n)"
+   }
+  },
+  "Home": {
+   "id": "h%7Btz",
+   "name": "Home",
+   "description": null,
+   "type": "button",
+   "button": {}
+  },
+  "Senior Coach Starter (IDR PP)": {
+   "id": "iCIc",
+   "name": "Senior Coach Starter (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Day": {
+   "id": "iU%3Ez",
+   "name": "Day",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")),\n  \"\",\n  formatDate(prop(\"Scheduled\"), \"ddd, YYYY-MM-DD\")\n)"
+   }
+  },
+  "Clinic (IDR PP)": {
+   "id": "jG%3C%3D",
+   "name": "Clinic (IDR PP)",
+   "description": "Actual per-student price charged for a Clinic (coaching + court combined), e.g. Nord 450 / Elite 425. v11.1 (WS1-R3, 10 Jul 2026): REPURPOSED as the actual per-seat list price \u2014 it is NO LONGER the coaching rate. The coaching rate now comes from the delivering coach's own PL rate columns (Coach Level \u00d7 realised ratio from Event Capacity) via Price Per Student \u2192 Tacit List Price. This field feeds Court Contribution only: Revenue-row seat court charge = (Clinic (IDR PP) \u2212 Price Per Student) \u00d7 Total Hours. Court is billed separately to the club. (Supersedes the v11 'Basil stamps the PL rate at the realised ratio' usage.)",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Head Coach 1:1 (IDR PP)": {
+   "id": "kFIv",
+   "name": "Head Coach 1:1 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Scheduled": {
+   "id": "kLG%5D",
+   "name": "Scheduled",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Events\")),\n  empty(),\n  /* Get the Scheduled date from the first related Event */\n  prop(\"Events\").first().prop(\"Scheduled\")\n)"
+   }
+  },
+  "Wallet 2 Used (IDR)": {
+   "id": "lRDN",
+   "name": "Wallet 2 Used (IDR)",
+   "description": "Sum of explicit Wallet 2 Draw values from Wallet 2 Item children. Internal Wallets 2.0 aggregation helper.",
+   "type": "rollup",
+   "rollup": {
+    "rollup_property_name": "Wallet 2 Draw (IDR)",
+    "relation_property_name": "Wallet 2 Item",
+    "rollup_property_id": ":hoP",
+    "relation_property_id": "^GZ\\",
+    "function": "sum"
+   }
+  },
+  "UI: \u2463 Tacit List Price (IDR)": {
+   "id": "mhY%3D",
+   "name": "UI: \u2463 Tacit List Price (IDR)",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")), \"\",\n  \"\u2463 Tacit List Price (IDR): \" + format(round(prop(\"Tacit List Price (IDR)\"), 0))\n)"
+   }
+  },
+  "Coach 1:1 (IDR PP)": {
+   "id": "nksW",
+   "name": "Coach 1:1 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Club %": {
+   "id": "npUS",
+   "name": "Club %",
+   "description": "Club's share of Shared Net Sales for this product. Copied from Split Source Organisation at creation. Do not edit retroactively.",
+   "type": "number",
+   "number": {
+    "format": "percent"
+   }
+  },
+  "Payment Channel": {
+   "id": "oLR%3E",
+   "name": "Payment Channel",
+   "description": "Collection route/funding classification. Club = club-collected; Wallet = wallet-funded lesson; Courtside and Bank transfer = Tacit receipt routes; Cost = marker only for records with Sale Role = Cost. Leave unknown or unverified records blank.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Club",
+      "color": "green",
+      "description": ""
+     },
+     {
+      "id": "IZ|n",
+      "name": "Wallet",
+      "color": "purple",
+      "description": ""
+     },
+     {
+      "id": "Y?Gc",
+      "name": "Courtside",
+      "color": "blue",
+      "description": ""
+     },
+     {
+      "id": "Lsc_",
+      "name": "Bank transfer",
+      "color": "orange",
+      "description": ""
+     },
+     {
+      "id": "Mjwi",
+      "name": "Ayo",
+      "color": "green",
+      "description": "Club-collected payment through Ayo. Use Paid To = Club."
+     },
+     {
+      "id": "_h\\C",
+      "name": "Reclub",
+      "color": "green",
+      "description": "Club-collected payment through Reclub. Use Paid To = Club."
+     },
+     {
+      "id": "Mjwi",
+      "name": "Cost",
+      "color": "gray",
+      "description": ""
+     }
+    ]
+   }
+  },
+  "Instructor 1:4 (IDR PP)": {
+   "id": "oW%40L",
+   "name": "Instructor 1:4 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Standard (On Court Hours)": {
+   "id": "ofi%7D",
+   "name": "Standard (On Court Hours)",
+   "description": null,
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Transaction Fee %": {
+   "id": "or%3Bk",
+   "name": "Transaction Fee %",
+   "description": "Percentage deducted for payment gateway or transaction processing fees",
+   "type": "number",
+   "number": {
+    "format": "percent"
+   }
+  },
+  "On Court Hours": {
+   "id": "p%3Ejy",
+   "name": "On Court Hours",
+   "description": "Total hours spent on court for this product",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(calculateHours, prop(\"Events\").filter(current.prop(\"Facility\") == \"On Court\" and not empty(current.prop(\"Scheduled\")) and current.prop(\"Status\") == \"Confirmed\" and empty(current.prop(\"Sub Event\"))).map(dateBetween(dateEnd(current.prop(\"Scheduled\")), dateStart(current.prop(\"Scheduled\")), \"minutes\") / 60), subEventHours, prop(\"Events\").map(current.prop(\"Sub Event\").filter(current.prop(\"Facility\") == \"On Court\" and not empty(current.prop(\"Scheduled\")) and current.prop(\"Status\") == \"Confirmed\").map(dateBetween(dateEnd(current.prop(\"Scheduled\")), dateStart(current.prop(\"Scheduled\")), \"minutes\") / 60)).flat(), sum(calculateHours.concat(subEventHours)))"
+   }
+  },
+  "Shadow Applied Coach Level": {
+   "id": "p%3FY%5E",
+   "name": "Shadow Applied Coach Level",
+   "description": "Coach level applied by the shadow calculation.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Head Coach",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "IZ|n",
+      "name": "Senior Coach",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "Y?Gc",
+      "name": "Coach",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "Lsc_",
+      "name": "Instructor",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "Mjwi",
+      "name": "Trainee",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "_h\\C",
+      "name": "None",
+      "color": "default",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Instructor 1:1 (IDR PP)": {
+   "id": "pfMR",
+   "name": "Instructor 1:1 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Senior Coach 1:4 (IDR PP)": {
+   "id": "pgMz",
+   "name": "Senior Coach 1:4 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Can Edit": {
+   "id": "qRnu",
+   "name": "Can Edit",
+   "description": "Team members who have access to view/edit this product",
+   "type": "people",
+   "people": {}
+  },
+  "Shared Discount (IDR)": {
+   "id": "rDiO",
+   "name": "Shared Discount (IDR)",
+   "description": "Shared by Tacit and the club only. Coaches are protected from Shared Discount.",
+   "type": "formula",
+   "formula": {
+    "expression": "round(\n  /* Use list price or 0 if empty */\n  if(empty(prop(\"Tacit List Price (IDR)\")), 0, prop(\"Tacit List Price (IDR)\")) *\n  /* Use discount percentage or 0 if empty */\n  if(empty(prop(\"Shared Discount %\")), 0, prop(\"Shared Discount %\")),\n  0\n)"
+   }
+  },
+  "Payment Processing Status": {
+   "id": "rwvp",
+   "name": "Payment Processing Status",
+   "description": "Manual V1 payment-processing control. Draft = payment facts being entered; Ready to process = authorised webhook trigger; Processing = Worker has claimed the Sale; Processed = Worker completed and verified the permitted Sales write; Exception = fail-closed manual review. This property is not a payment, delivery or financial-release status.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Draft",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "IZ|n",
+      "name": "Ready to process",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "Y?Gc",
+      "name": "Processing",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "Lsc_",
+      "name": "Processed",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "Mjwi",
+      "name": "Exception",
+      "color": "red",
+      "description": null
+     }
+    ]
+   }
+  },
+  "UI: \u2466 Academy Fees (IDR)": {
+   "id": "sSDp",
+   "name": "UI: \u2466 Academy Fees (IDR)",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")),\n  empty(),\n  style(\"\u2466 Academy Fees (IDR): \" + format(round(prop(\"Academy Fees (IDR)\"), 0)), \"b\")\n)"
+   }
+  },
+  "UI: \u246f OPEX (IDR)": {
+   "id": "s%5CI%3B",
+   "name": "UI: \u246f OPEX (IDR)",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")), empty(), if(empty(prop(\"OPEX (IDR)\")), \"\u246f OPEX (IDR): 0\", \"\u246f OPEX (IDR): \" + format(round(prop(\"OPEX (IDR)\"), 0))))"
+   }
+  },
+  "Coach 1:4 (IDR PP)": {
+   "id": "saDm",
+   "name": "Coach 1:4 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Wallet Type": {
+   "id": "sqK~",
+   "name": "Wallet Type",
+   "description": "Classifies the wallet scheme. Active finite monetary-credit types: EPA Late 26, Proklamasi 26, 1945 26 and Garuda 26. Merdeka 26 and Abadi 26 remain inactive and fail closed.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "EPA Late 26",
+      "color": "brown",
+      "description": "Elite Padel Academy late-2026 monetary-credit retrofit."
+     },
+     {
+      "id": "IZ|n",
+      "name": "Proklamasi 26",
+      "color": "red",
+      "description": "Active Independence Day 2026 finite monetary-credit wallet."
+     },
+     {
+      "id": "Y?Gc",
+      "name": "1945 26",
+      "color": "red",
+      "description": "Active Independence Day 2026 finite monetary-credit wallet."
+     },
+     {
+      "id": "Lsc_",
+      "name": "Garuda 26",
+      "color": "red",
+      "description": "Active Independence Day 2026 finite monetary-credit wallet."
+     },
+     {
+      "id": "Mjwi",
+      "name": "Merdeka 26",
+      "color": "red",
+      "description": "Independence Day 2026 wallet type; inactive until its separate change request deploys."
+     },
+     {
+      "id": "_h\\C",
+      "name": "Abadi 26",
+      "color": "red",
+      "description": "Independence Day 2026 wallet type; inactive until its separate change request deploys."
+     }
+    ]
+   }
+  },
+  "Dividends (IDR)": {
+   "id": "uFht",
+   "name": "Dividends (IDR)",
+   "description": "60% of Tacit Gross Profit distributed to shareholders. Hardcoded per v7 framework.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(bs, prop(\"Balance Sheet\"), hasAccess, bs.length() > 0, if(!hasAccess, 0, round(max(prop(\"Tacit Gross Profit (IDR)\"), 0) * 0.6)))"
+   }
+  },
+  "Resolved Coaching Rate (IDR)": {
+   "id": "uNuH",
+   "name": "Resolved Coaching Rate (IDR)",
+   "description": "Immutable V1 audit snapshot of the rate resolved for this Sale before discounts.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Confirmed": {
+   "id": "vSa%40",
+   "name": "Confirmed",
+   "description": null,
+   "type": "date",
+   "date": {}
+  },
+  "Head Coach 1:3 (IDR PP)": {
+   "id": "wjlb",
+   "name": "Head Coach 1:3 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Player Academy Tier": {
+   "id": "wvzf",
+   "name": "Player Academy Tier",
+   "description": "Player Academy tier level. Used for pricing Player Academy products.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "HV@k",
+      "name": "Starter",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "pDs@",
+      "name": "Basic",
+      "color": "gray",
+      "description": ""
+     },
+     {
+      "id": "WAn>",
+      "name": "Standard",
+      "color": "blue",
+      "description": ""
+     },
+     {
+      "id": "Fy}s",
+      "name": "Premium",
+      "color": "purple",
+      "description": ""
+     },
+     {
+      "id": "OYfE",
+      "name": "Pro",
+      "color": "red",
+      "description": null
+     }
+    ]
+   }
+  },
+  "UI: \u2462 Court Rental (IDR)": {
+   "id": "xlDT",
+   "name": "UI: \u2462 Court Rental (IDR)",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")),\n  empty(),\n  style(\n    \"\u2462 Court Rental (IDR): \" + format(round(prop(\"Court Rental (IDR)\"), 0)),\n    \"b\",\n    \"red\"\n  )\n)"
+   }
+  },
+  "Payment V1 Ledger Eligible": {
+   "id": "xr%5Ea",
+   "name": "Payment V1 Ledger Eligible",
+   "description": "Worker-controlled native-automation handoff. Checked only after confirmPaymentV1PrivateLessonEvent has re-read all payment proof and successfully confirmed the linked Payment V1 Private Lesson Event. Do not edit manually.",
+   "type": "checkbox",
+   "checkbox": {}
+  },
+  "Court Hourly Rate (IDR)": {
+   "id": "xybl",
+   "name": "Court Hourly Rate (IDR)",
+   "description": "Hourly cost to rent a court (set manually)",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Senior Coach Pro (IDR PP)": {
+   "id": "yEhD",
+   "name": "Senior Coach Pro (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Payment Verified At": {
+   "id": "ybO%3E",
+   "name": "Payment Verified At",
+   "description": "Timestamp at which the payment evidence or authorised verbal confirmation was verified.",
+   "type": "date",
+   "date": {}
+  },
+  "Item": {
+   "id": "%7B%3BSB",
+   "name": "Item",
+   "description": "",
+   "type": "relation",
+   "relation": {
+    "database_id": "261afdfb-c3c7-81e0-ac1c-f1a3c5cbc97c",
+    "data_source_id": "261afdfb-c3c7-81d5-b4a7-000b0f69814f",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Group",
+     "synced_property_id": "L%3CHr"
+    }
+   }
+  },
+  "Shared Discount %": {
+   "id": "%7BOqX",
+   "name": "Shared Discount %",
+   "description": "Discount shared by Tacit and the club only. Coaches are protected from Shared Discount.",
+   "type": "number",
+   "number": {
+    "format": "percent"
+   }
+  },
+  "Coach 1:2 (IDR PP)": {
+   "id": "%7CY%7DA",
+   "name": "Coach 1:2 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Shadow Expected Coach Fee 2 (IDR)": {
+   "id": "%7C~NW",
+   "name": "Shadow Expected Coach Fee 2 (IDR)",
+   "description": "Expected compensation for the second coach under the target calculation. Shadow only.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Wallet Opening Credit (IDR)": {
+   "id": "%7D%3Caw",
+   "name": "Wallet Opening Credit (IDR)",
+   "description": "Cash Wallet Value plus promotional bonus credit. Parent wallet only.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(prop(\"Sale Role\") != \"Wallet\" or empty(prop(\"Wallet Value (IDR)\")), empty(),\n  prop(\"Wallet Value (IDR)\") + if(empty(prop(\"Wallet Bonus Credit (IDR)\")), 0, prop(\"Wallet Bonus Credit (IDR)\"))\n)"
+   }
+  },
+  "Head Coach Standard (IDR PP)": {
+   "id": "~CbF",
+   "name": "Head Coach Standard (IDR PP)",
+   "description": "",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Head Coach 1:2 (IDR PP)": {
+   "id": "~DFB",
+   "name": "Head Coach 1:2 (IDR PP)",
+   "description": "IDR per hour per student",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "TP: Sales [Self]": {
+   "id": "~GOs",
+   "name": "TP: Sales [Self]",
+   "description": "",
+   "type": "relation",
+   "relation": {
+    "database_id": "261afdfb-c3c7-81e0-ac1c-f1a3c5cbc97c",
+    "data_source_id": "261afdfb-c3c7-81d5-b4a7-000b0f69814f",
+    "type": "single_property",
+    "single_property": {}
+   }
+  },
+  "UI: \u2469 Split": {
+   "id": "~G%7Dr",
+   "name": "UI: \u2469 Split",
+   "description": "",
+   "type": "formula",
+   "formula": {
+    "expression": "if(empty(prop(\"Scheduled\")), empty(),\n  lets(\n    t, if(empty(prop(\"Tacit %\")), 0, round(prop(\"Tacit %\") * 100)),\n    c, if(empty(prop(\"Club %\")), 0, round(prop(\"Club %\") * 100)),\n    tp, if(empty(prop(\"Third Party %\")), 0, round(prop(\"Third Party %\") * 100)),\n    \"\u2469 Split: Tacit \" + format(t) + \"% \u00b7 Club \" + format(c) + \"% \u00b7 Third Party \" + format(tp) + \"%\"\n  )\n)"
+   }
+  },
+  "Split Validation": {
+   "id": "~W%3AK",
+   "name": "Split Validation",
+   "description": "Validates that Tacit % + Club % + Third Party % = 100%. Shows warning when invalid or unset.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  tacitPct, if(empty(prop(\"Tacit %\")), 0, prop(\"Tacit %\")),\n  clubPct, if(empty(prop(\"Club %\")), 0, prop(\"Club %\")),\n  thirdPartyPct, if(empty(prop(\"Third Party %\")), 0, prop(\"Third Party %\")),\n  total, round((tacitPct + clubPct + thirdPartyPct) * 100, 0),\n  if(tacitPct == 0 and clubPct == 0 and thirdPartyPct == 0,\n    style(\"\u26a0\ufe0f Split percentages not set\", \"b\", \"red\"),\n    if(total != 100,\n      style(\"\u26a0\ufe0f Split total = \" + format(total) + \"% (must be 100%)\", \"b\", \"red\"),\n      \"\"\n    )\n  )\n)"
+   }
+  },
+  "Created Via": {
+   "id": "~W~%40",
+   "name": "Created Via",
+   "description": "Tracks how this Sale was created. Automation = created by Confirm:A Events automation. Basil = created by Basil (Pattern B). Manual = created directly by a user.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "J:FN",
+      "name": "Automation",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "IZ|n",
+      "name": "Basil",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "Y?Gc",
+      "name": "Manual",
+      "color": "gray",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Sale": {
+   "id": "title",
+   "name": "Sale",
+   "description": "Product name/title",
+   "type": "title",
+   "title": {}
+  }
+ },
+ "parent": {
+  "type": "block_id",
+  "block_id": "261afdfb-c3c7-8189-8da1-d3847fdf0bf5"
+ },
+ "url": "https://app.notion.com/p/261afdfbc3c781e0ac1cf1a3c5cbc97c",
+ "public_url": null,
+ "in_trash": false,
+ "archived": false,
+ "request_id": "2659a0fb-413c-4ac6-8677-5a5d5ca0302e"
+}

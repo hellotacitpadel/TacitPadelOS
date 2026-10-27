@@ -1,0 +1,524 @@
+{
+ "object": "database",
+ "id": "3f2afdfb-c3c7-807e-808e-d85944555557",
+ "cover": null,
+ "icon": {
+  "type": "icon",
+  "icon": {
+   "name": "cash-register",
+   "color": "brown"
+  }
+ },
+ "created_time": "2026-10-07T15:50:00.000Z",
+ "created_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_time": "2026-10-15T10:58:00.000Z",
+ "title": [
+  {
+   "type": "text",
+   "text": {
+    "content": "TP: Pricing",
+    "link": null
+   },
+   "annotations": {
+    "bold": false,
+    "italic": false,
+    "strikethrough": false,
+    "underline": false,
+    "code": false,
+    "color": "default"
+   },
+   "plain_text": "TP: Pricing",
+   "href": null
+  }
+ ],
+ "description": [],
+ "is_inline": false,
+ "database_type": null,
+ "properties": {
+  "Approved At": {
+   "id": "%3BJaL",
+   "name": "Approved At",
+   "description": "Timestamp of approval to activate this price period.",
+   "type": "date",
+   "date": {}
+  },
+  "Coach 1:2 (IDR PP)": {
+   "id": "%40SlN",
+   "name": "Coach 1:2 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Match with Coach Instructor (IDR PP)": {
+   "id": "B%5B%7DK",
+   "name": "Match with Coach Instructor (IDR PP)",
+   "description": "Match with Coach recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Match with Coach SC (IDR PP)": {
+   "id": "B%5Dug",
+   "name": "Match with Coach SC (IDR PP)",
+   "description": "Match with Coach recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Coaches Course (IDR PP)": {
+   "id": "DrS%7C",
+   "name": "Coaches Course (IDR PP)",
+   "description": "Coaches Academy recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Coach 1:1 (IDR PP)": {
+   "id": "GIG%5E",
+   "name": "Coach 1:1 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Last edited time": {
+   "id": "HJ_%5E",
+   "name": "Last edited time",
+   "description": "",
+   "type": "last_edited_time",
+   "last_edited_time": {}
+  },
+  "Published Events": {
+   "id": "JZnj",
+   "name": "Published Events",
+   "description": "Events published against this price period.",
+   "type": "relation",
+   "relation": {
+    "database_id": "261afdfb-c3c7-8153-b58b-c7959ae8256e",
+    "data_source_id": "261afdfb-c3c7-8178-98cd-000b29cdbb16",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Published Price List",
+     "synced_property_id": "gGf%5B"
+    }
+   }
+  },
+  "Head Coach 1:2 (IDR PP)": {
+   "id": "JrN%7B",
+   "name": "Head Coach 1:2 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Coach 1:4 (IDR PP)": {
+   "id": "Jwf~",
+   "name": "Coach 1:4 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Can Edit": {
+   "id": "K%7BSD",
+   "name": "Can Edit",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Trainee 1:4 (IDR PP)": {
+   "id": "MVo%3B",
+   "name": "Trainee 1:4 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Created time": {
+   "id": "Ntd%5D",
+   "name": "Created time",
+   "description": "",
+   "type": "created_time",
+   "created_time": {}
+  },
+  "Coach 1:3 (IDR PP)": {
+   "id": "PC%3CY",
+   "name": "Coach 1:3 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Senior Coach 1:2 (IDR PP)": {
+   "id": "PXnC",
+   "name": "Senior Coach 1:2 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Match with Coach HC (IDR PP)": {
+   "id": "QQGl",
+   "name": "Match with Coach HC (IDR PP)",
+   "description": "Match with Coach recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Created by": {
+   "id": "RfIY",
+   "name": "Created by",
+   "description": "",
+   "type": "created_by",
+   "created_by": {}
+  },
+  "Trainee 1:1 (IDR PP)": {
+   "id": "R%7D%7By",
+   "name": "Trainee 1:1 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Effective Period": {
+   "id": "SG%40F",
+   "name": "Effective Period",
+   "description": "Inclusive period during which this price period applies.",
+   "type": "date",
+   "date": {}
+  },
+  "Template [Self]": {
+   "id": "Tati",
+   "name": "Template [Self]",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3f2afdfb-c3c7-807e-808e-d85944555557",
+    "data_source_id": "4baafdfb-c3c7-820b-b36b-07519bd502aa",
+    "type": "single_property",
+    "single_property": {}
+   }
+  },
+  "Head Coach 1:4 (IDR PP)": {
+   "id": "WvqO",
+   "name": "Head Coach 1:4 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Senior Coach 1:3 (IDR PP)": {
+   "id": "Xthf",
+   "name": "Senior Coach 1:3 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Instructor 1:4 (IDR PP)": {
+   "id": "%5C%3C%3DO",
+   "name": "Instructor 1:4 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Trainee 1:3 (IDR PP)": {
+   "id": "%5DJmb",
+   "name": "Trainee 1:3 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Min. Access": {
+   "id": "%60Kg%5E",
+   "name": "Min. Access",
+   "description": "Minimum access level inferred from Can Edit, Can Comment and Can View.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  /* Combine all permission names */\n  allAccessGroups, concat(\n    prop(\"Can Edit\"),\n    prop(\"Can Comment\"),\n    prop(\"Can View\")\n  ).map(current.name()),\n  /* Return the broadest group present */\n  ifs(\n    allAccessGroups.includes(\"Team\"), \"Team\",\n    allAccessGroups.includes(\"Leadership\"), \"Leadership\",\n    allAccessGroups.includes(\"Owners\"), \"Owners\",\n    \"Admin\"\n  )\n)"
+   }
+  },
+  "Last edited by": {
+   "id": "%60_J%3F",
+   "name": "Last edited by",
+   "description": "",
+   "type": "last_edited_by",
+   "last_edited_by": {}
+  },
+  "Approved By": {
+   "id": "ase%60",
+   "name": "Approved By",
+   "description": "Named approver for activation of this price period.",
+   "type": "people",
+   "people": {}
+  },
+  "Instructor 1:2 (IDR PP)": {
+   "id": "eCMO",
+   "name": "Instructor 1:2 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Database Group": {
+   "id": "eftd",
+   "name": "Database Group",
+   "description": "Functional group classification from Source Databases page",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "faVp",
+      "name": "Storage",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "en_r",
+      "name": "Activities",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "ya:v",
+      "name": "Knowledge",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "Jf=H",
+      "name": "Tagging",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": ":Lgu",
+      "name": "Build",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "QdYN",
+      "name": "AI",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "CMkO",
+      "name": "SV",
+      "color": "green",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Status": {
+   "id": "fTcS",
+   "name": "Status",
+   "description": "Lifecycle of this price period. Only a later financial-release unit may set a period Active.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "gygL",
+      "name": "Proposed",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "oIc?",
+      "name": "Active",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "b:za",
+      "name": "Previous",
+      "color": "gray",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Can View": {
+   "id": "g%3B%5Cx",
+   "name": "Can View",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Senior Coach 1:4 (IDR PP)": {
+   "id": "hqUn",
+   "name": "Senior Coach 1:4 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Trainee 1:2 (IDR PP)": {
+   "id": "iz%3Dx",
+   "name": "Trainee 1:2 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Can Comment": {
+   "id": "jLit",
+   "name": "Can Comment",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Senior Coach 1:1 (IDR PP)": {
+   "id": "o%3CNJ",
+   "name": "Senior Coach 1:1 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Change Note": {
+   "id": "qOMD",
+   "name": "Change Note",
+   "description": "Reason and scope of the pricing change.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Home": {
+   "id": "qUz%5C",
+   "name": "Home",
+   "description": "",
+   "type": "button",
+   "button": {}
+  },
+  "Parent item": {
+   "id": "tMm%3E",
+   "name": "Parent item",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3f2afdfb-c3c7-807e-808e-d85944555557",
+    "data_source_id": "4baafdfb-c3c7-820b-b36b-07519bd502aa",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Sub-item",
+     "synced_property_id": "xxn%3F"
+    }
+   }
+  },
+  "Instructor 1:3 (IDR PP)": {
+   "id": "tg%5ER",
+   "name": "Instructor 1:3 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Match with Coach Coach (IDR PP)": {
+   "id": "v%40oa",
+   "name": "Match with Coach Coach (IDR PP)",
+   "description": "Match with Coach recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Head Coach 1:1 (IDR PP)": {
+   "id": "vYP%3C",
+   "name": "Head Coach 1:1 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Instructor 1:1 (IDR PP)": {
+   "id": "v%7C%5DD",
+   "name": "Instructor 1:1 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Head Coach 1:3 (IDR PP)": {
+   "id": "wlYK",
+   "name": "Head Coach 1:3 (IDR PP)",
+   "description": "Private Lesson recommended retail price per person.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Sub-item": {
+   "id": "xxn%3F",
+   "name": "Sub-item",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3f2afdfb-c3c7-807e-808e-d85944555557",
+    "data_source_id": "4baafdfb-c3c7-820b-b36b-07519bd502aa",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Parent item",
+     "synced_property_id": "tMm%3E"
+    }
+   }
+  },
+  "Framework Version": {
+   "id": "~Zi%5C",
+   "name": "Framework Version",
+   "description": "Pricing and compensation framework version used to define this period.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Price Period": {
+   "id": "title",
+   "name": "Price Period",
+   "description": null,
+   "type": "title",
+   "title": {}
+  }
+ },
+ "parent": {
+  "type": "block_id",
+  "block_id": "261afdfb-c3c7-8189-8da1-d3847fdf0bf5"
+ },
+ "url": "https://app.notion.com/p/3f2afdfbc3c7807e808ed85944555557",
+ "public_url": null,
+ "in_trash": false,
+ "archived": false,
+ "request_id": "bae2eba1-a7d0-4752-b3b6-003b99e29bf0"
+}

@@ -1,0 +1,558 @@
+{
+ "object": "database",
+ "id": "3d9afdfb-c3c7-80c2-9e85-d128f7286401",
+ "cover": null,
+ "icon": {
+  "type": "icon",
+  "icon": {
+   "name": "feed",
+   "color": "orange"
+  }
+ },
+ "created_time": "2026-09-12T02:58:00.000Z",
+ "created_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_time": "2026-09-28T05:38:00.000Z",
+ "title": [
+  {
+   "type": "text",
+   "text": {
+    "content": "TP: Social Posts",
+    "link": null
+   },
+   "annotations": {
+    "bold": false,
+    "italic": false,
+    "strikethrough": false,
+    "underline": false,
+    "code": false,
+    "color": "default"
+   },
+   "plain_text": "TP: Social Posts",
+   "href": null
+  }
+ ],
+ "description": [],
+ "is_inline": false,
+ "database_type": null,
+ "properties": {
+  "Informed": {
+   "id": "Cx%3Cf",
+   "name": "Informed",
+   "description": "People who should be kept aware of significant progress, decisions or publication.",
+   "type": "people",
+   "people": {}
+  },
+  "Format": {
+   "id": "F%3A%3CB",
+   "name": "Format",
+   "description": "Content format used for publication.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "]uC=",
+      "name": "Reel",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "L_}@",
+      "name": "Carousel",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "zu;B",
+      "name": "Static Post",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "ZWWi",
+      "name": "Story",
+      "color": "yellow",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Last edited time": {
+   "id": "HJ_%5E",
+   "name": "Last edited time",
+   "description": "",
+   "type": "last_edited_time",
+   "last_edited_time": {}
+  },
+  "Followers Gained": {
+   "id": "Kn~B",
+   "name": "Followers Gained",
+   "description": "Followers attributed to the publication.",
+   "type": "number",
+   "number": {
+    "format": "number_with_commas"
+   }
+  },
+  "Can Edit": {
+   "id": "K%7BSD",
+   "name": "Can Edit",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Engagements": {
+   "id": "LhGQ",
+   "name": "Engagements",
+   "description": "Total measurable interactions.",
+   "type": "number",
+   "number": {
+    "format": "number_with_commas"
+   }
+  },
+  "Accountable": {
+   "id": "Mh%60o",
+   "name": "Accountable",
+   "description": "Person with final decision authority and accountability for the published outcome.",
+   "type": "people",
+   "people": {}
+  },
+  "Created time": {
+   "id": "Ntd%5D",
+   "name": "Created time",
+   "description": "",
+   "type": "created_time",
+   "created_time": {}
+  },
+  "Consulted": {
+   "id": "Pp%7B%5D",
+   "name": "Consulted",
+   "description": "People whose input should be sought during development, planning or review.",
+   "type": "people",
+   "people": {}
+  },
+  "Created by": {
+   "id": "RfIY",
+   "name": "Created by",
+   "description": "",
+   "type": "created_by",
+   "created_by": {}
+  },
+  "Platform": {
+   "id": "RhqD",
+   "name": "Platform",
+   "description": "Publishing platform. One record represents one publication on one platform.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "]uC=",
+      "name": "Instagram",
+      "color": "pink",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Responsible": {
+   "id": "SPRx",
+   "name": "Responsible",
+   "description": "Person responsible for managing and producing this social post.",
+   "type": "people",
+   "people": {}
+  },
+  "Published URL": {
+   "id": "Ug%7D%5E",
+   "name": "Published URL",
+   "description": "Direct link to the live publication.",
+   "type": "url",
+   "url": {}
+  },
+  "Social Posts [Self]": {
+   "id": "XkQW",
+   "name": "Social Posts [Self]",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3d9afdfb-c3c7-80c2-9e85-d128f7286401",
+    "data_source_id": "3d7afdfb-c3c7-82ad-b577-075f5773eebc",
+    "type": "single_property",
+    "single_property": {}
+   }
+  },
+  "Engagement Rate": {
+   "id": "ZyRP",
+   "name": "Engagement Rate",
+   "description": "Engagements divided by Reach. Returns blank when Reach is empty or zero.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(\n  empty(prop(\"Reach\")),\n  empty(),\n  if(empty(prop(\"Engagements\")), 0, prop(\"Engagements\")) / prop(\"Reach\")\n)"
+   }
+  },
+  "Content Type": {
+   "id": "%5B%7DK%3B",
+   "name": "Content Type",
+   "description": "Primary content classification used for planning and performance comparison.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "]uC=",
+      "name": "Coach Tip",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "L_}@",
+      "name": "Testimonial",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "zu;B",
+      "name": "Promotion",
+      "color": "red",
+      "description": null
+     },
+     {
+      "id": "ZWWi",
+      "name": "Event Coverage",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "bKBy",
+      "name": "Behind the Scenes",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "gD[z",
+      "name": "Community",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "}Li:",
+      "name": "Brand",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "eal<",
+      "name": "Q&A",
+      "color": "pink",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Min. Access": {
+   "id": "%60Kg%5E",
+   "name": "Min. Access",
+   "description": "Minimum access level inferred from Can Edit, Can Comment and Can View.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  /* Combine all permission names */\n  allAccessGroups, concat(\n    prop(\"Can Edit\"),\n    prop(\"Can Comment\"),\n    prop(\"Can View\")\n  ).map(current.name()),\n  /* Return the broadest group present */\n  ifs(\n    allAccessGroups.includes(\"Team\"), \"Team\",\n    allAccessGroups.includes(\"Leadership\"), \"Leadership\",\n    allAccessGroups.includes(\"Owners\"), \"Owners\",\n    \"Admin\"\n  )\n)"
+   }
+  },
+  "Last edited by": {
+   "id": "%60_J%3F",
+   "name": "Last edited by",
+   "description": "",
+   "type": "last_edited_by",
+   "last_edited_by": {}
+  },
+  "Database Group": {
+   "id": "eftd",
+   "name": "Database Group",
+   "description": "Functional group classification from Source Databases page",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "faVp",
+      "name": "Storage",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "en_r",
+      "name": "Activities",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "ya:v",
+      "name": "Knowledge",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "Jf=H",
+      "name": "Tagging",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": ":Lgu",
+      "name": "Build",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "QdYN",
+      "name": "AI",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "CMkO",
+      "name": "SV",
+      "color": "green",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Can View": {
+   "id": "g%3B%5Cx",
+   "name": "Can View",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Scheduled": {
+   "id": "iIcc",
+   "name": "Scheduled",
+   "description": "Planned publishing date and time.",
+   "type": "date",
+   "date": {}
+  },
+  "Can Comment": {
+   "id": "jLit",
+   "name": "Can Comment",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Pillar": {
+   "id": "jtuu",
+   "name": "Pillar",
+   "description": "Primary strategic purpose of the post. Separate from Content Type, which describes the publication classification.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "]uC=",
+      "name": "Coaching Tips",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "L_}@",
+      "name": "Developing Coaches",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "zu;B",
+      "name": "Building Our Home",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "ZWWi",
+      "name": "Milestones",
+      "color": "red",
+      "description": null
+     },
+     {
+      "id": "bKBy",
+      "name": "Our Journey",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "gD[z",
+      "name": "Philosophy",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "}Li:",
+      "name": "The People",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": "eal<",
+      "name": "Proof / Transformation",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "FRO@",
+      "name": "Vision / Club Network",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "NioJ",
+      "name": "Community / UGC",
+      "color": "default",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Status": {
+   "id": "n%3FvO",
+   "name": "Status",
+   "description": "Overall lifecycle stage of the social post.",
+   "type": "status",
+   "status": {
+    "options": [
+     {
+      "id": "PMk~",
+      "name": "Develop",
+      "color": "brown",
+      "description": ""
+     },
+     {
+      "id": "Uz]k",
+      "name": "Plan",
+      "color": "gray",
+      "description": ""
+     },
+     {
+      "id": "AC@=",
+      "name": "Shoot",
+      "color": "yellow",
+      "description": ""
+     },
+     {
+      "id": "YxOn",
+      "name": "Edit",
+      "color": "blue",
+      "description": ""
+     },
+     {
+      "id": "ASf@",
+      "name": "Approval",
+      "color": "purple",
+      "description": ""
+     },
+     {
+      "id": "cvcV",
+      "name": "Scheduled",
+      "color": "orange",
+      "description": ""
+     },
+     {
+      "id": "I;CY",
+      "name": "Published",
+      "color": "green",
+      "description": ""
+     },
+     {
+      "id": "R~Ll",
+      "name": "Cancelled",
+      "color": "red",
+      "description": ""
+     }
+    ],
+    "groups": [
+     {
+      "id": "gG:L",
+      "name": "To-do",
+      "color": "default",
+      "option_ids": [
+       "PMk~",
+       "Uz]k"
+      ]
+     },
+     {
+      "id": "\\GfZ",
+      "name": "In progress",
+      "color": "default",
+      "option_ids": [
+       "AC@=",
+       "YxOn",
+       "ASf@",
+       "cvcV"
+      ]
+     },
+     {
+      "id": "JGjw",
+      "name": "Complete",
+      "color": "default",
+      "option_ids": [
+       "I;CY",
+       "R~Ll"
+      ]
+     }
+    ],
+    "default_option": null
+   }
+  },
+  "Social Media App": {
+   "id": "qUz%5C",
+   "name": "Social Media App",
+   "description": "",
+   "type": "button",
+   "button": {}
+  },
+  "Caption": {
+   "id": "sjZB",
+   "name": "Caption",
+   "description": "Final approved publication caption.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Reach": {
+   "id": "%7BGEm",
+   "name": "Reach",
+   "description": "Number of accounts reached.",
+   "type": "number",
+   "number": {
+    "format": "number_with_commas"
+   }
+  },
+  "Analytics Updated": {
+   "id": "%7Cq%5Cd",
+   "name": "Analytics Updated",
+   "description": "Date the performance figures were last checked.",
+   "type": "date",
+   "date": {}
+  },
+  "Published": {
+   "id": "~L%3Ce",
+   "name": "Published",
+   "description": "Actual publishing date and time.",
+   "type": "date",
+   "date": {}
+  },
+  "Post": {
+   "id": "title",
+   "name": "Post",
+   "description": "",
+   "type": "title",
+   "title": {}
+  }
+ },
+ "parent": {
+  "type": "block_id",
+  "block_id": "261afdfb-c3c7-8124-88f9-f64ca2cfa557"
+ },
+ "url": "https://app.notion.com/p/3d9afdfbc3c780c29e85d128f7286401",
+ "public_url": null,
+ "in_trash": false,
+ "archived": false,
+ "request_id": "07efaddd-cedd-419a-9c44-da771149d80f"
+}
