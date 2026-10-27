@@ -1,0 +1,11 @@
+Title,Date,Area,Type,Version,Why,By
+"TacitOS Docs hub created with Reference / Planning / Operations structure",2026-10-26,Docs,Added,,"Modular doc organisation — look things up / the work plan / keeping the system current; seeds the Item-5 handover hub","Dhiren"
+"Notion General Knowledge Base imported (19 sections, Mermaid diagrams)",2026-10-26,Docs,Added,,"Platform reference for the team and any successor","Dhiren"
+"Jargon Acronym Decoder imported",2026-10-26,Docs,Added,,"Plain-language decoder for acronyms and terms used across the docs","Dhiren"
+"First Stage Breakdown imported (five items, acceptance test, weekly checklist)",2026-10-26,Docs,Added,,"November work plan in executable form","Dhiren"
+"Staying Current with Notion imported + status callout added",2026-10-26,Docs,Changed,,"Doc now reflects build reality — live linked view of the Updates DB, real build-order checklist","Dhiren"
+"TacitOS Work Tracker created from First Stage checklist (42 tasks, W1–W4)",2026-10-26,Databases,Added,,"Project board Nick can monitor; status pipeline + weekly filter","Dhiren"
+"Notion Updates database created under Operations (seeded with Sep–Nov releases)",2026-10-26,Databases,Added,,"Release Watch live artifact — triage pipeline Unreviewed → Triaged → Actioned/Dismissed","Dhiren"
+"release-watch Worker written and dry-run tested against live MF RSS feed",2026-10-26,Code,Added,,"Deterministic layer of Release Watch — fetch/parse/dedupe-by-URL; deploy blocked on API connection","Dhiren"
+"release-triage skill v0.1.0 — created in workspace and validated live",2026-10-26,Skills,Added,0.1.0,"Judgement layer of Release Watch; ran end-to-end on the Nov 2 credit row — Triaged High, created follow-up task, respected human-gate guardrails","Dhiren"
+"release-triage skill v0.1.1 — no-duplicate-task rule, task specifics kept out",2026-10-26,Skills,Changed,0.1.1,"Idempotency added; property mechanics deliberately left to the model (reads tracker schema at run time)","Dhiren"
