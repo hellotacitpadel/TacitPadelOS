@@ -301,11 +301,191 @@ No `Payment Verified At` or `Payment Verified By` property exists. The verificat
 | # | Action | Owner | Status |
 |---|---|---|---|
 | 1 | Fix Antonio's instruction + re-trigger Worker | Dhiren | ✅ Done (Oct 27) |
-| 2 | Update Polly's template to include `paymentVerifiedAt` | Soren / Clara | Pending |
-| 3 | Add visible payment fields to TP: Events | Walter / Clara | Pending |
-| 4 | Make Worker write visible rejection reasons | Warren / Clara | Pending |
-| 5 | Add contract sync check for Worker ↔ skill updates | Clara | Pending |
+| 2 | Update Polly's template to include `paymentVerifiedAt` | Dhiren | ✅ Done (Oct 27) |
+| 3 | Add visible payment fields to TP: Events | Dhiren | ✅ Done (Oct 27) — 4 properties added |
+| 4 | Make Worker write visible rejection reasons | Warren / Clara | Pending — needs separate CR |
+| 5 | Add contract sync check for Worker ↔ skill updates | Clara | Pending — process doc |
+| 6 | Move visible-field writes from Polly to Worker | Warren / Clara | Proposed — see below |
+| 7 | Move Event creation from Basil to Worker | Warren / Clara | Proposed — see below |
+| 8 | Notion Forms intake for booking flow | Walter / Clara | Proposed — see V1 booking flow |
 
 ---
 
-*Generated October 27, 2026. This is a static incident report; it does not modify any live system.*
+## Implementation Plan
+
+### Completed (Oct 27, 2026)
+
+**Action 1 — Fix Antonio's instruction**
+- Added `paymentVerifiedAt` to the instruction JSON in the Event Log
+- Re-set Status to Payment Processing
+- Worker processed successfully — 1 Sale created
+- No existing functionality broken
+
+**Action 2 — Update Polly's template (live skill page)**
+- Added `"paymentVerifiedAt"` field to the JSON template on the live Polly skill page
+- Updated step 5: "Record the current timestamp as paymentVerifiedAt at operator confirmation — do not ask the operator for it"
+- Polly auto-records the timestamp — no new question for the operator
+- Non-Bank-transfer payments unaffected (field omitted)
+- Risk: Low — additive only
+
+**Action 3 — Add visible payment fields to TP: Events**
+- Added 4 properties to TP: Events (49 → 53):
+  - `Payment Verified At` (date)
+  - `Payment Verified By` (people)
+  - `Payment Channel` (select: Bank transfer, Courtside, Club, Ayo, Reclub, Wallet)
+  - `Paid To` (select: Tacit, Club)
+- Updated Polly step 8: "Also write the payment facts to the Event's visible properties"
+- Existing events unaffected — new fields are empty on old records
+- Risk: Low — additive only
+
+### Pending — needs Warren (separate CR)
+
+**Action 4 — Make Worker write visible rejection reasons**
+- When the Worker rejects a payment, append a plain-language callout to the Event page
+- Example: "⚠️ Payment blocked: missing verification time. Ask Polly to re-process with the verification timestamp."
+- Written before reverting status to Pending
+- This is a Worker code change — requires Warren's review and a separate change request
+- The current CR (Build new Ivy) does not authorise Worker changes
+
+### Pending — needs Clara (process documentation)
+
+**Action 5 — Contract sync check**
+- Document which skills write instructions to which Workers (Polly → Payment V1 Worker)
+- Add a step to Warren's deployment process: "Before deploying a Worker update, confirm all skills that write to this Worker have matching templates"
+- Add a step to Soren's skill update process: "Before updating a skill, check the target Worker's current contract for required fields"
+- This is a process change, not a code change
+
+---
+
+## Proposed: Make the booking flow deterministic
+
+### The root architecture problem
+
+This incident exposed a deeper issue than a missing field. The booking flow relies on AI (Basil, Polly) to create records and write financial data. AI is not deterministic — it can skip steps, miss fields, or write wrong values. The Worker catches some mistakes but fails silently when it does.
+
+The original architecture principle was: *"AI skills handle interpretation; deterministic execution belongs in code/Workers."* The current system violates this by having AI create records.
+
+### Current flow (AI-heavy, non-deterministic)
+
+```
+User → Basil (AI) → creates Event (AI) → Polly (AI) → writes JSON (AI) → Worker (code) → creates Sale
+```
+
+Three AI steps before the code step. Each can introduce errors.
+
+### Proposed flow (code-heavy, deterministic)
+
+```
+User → Basil (AI) → resolves names/dates (AI) → Worker (code) → creates Event (code) → Polly (AI) → collects payment (AI) → Worker (code) → writes instruction (code) → Worker (code) → creates Sale
+```
+
+The AI does what it's good at — interpreting natural language. The code does what it's good at — writing correct data.
+
+### What changes
+
+**Action 6 — Move visible-field writes from Polly to Worker**
+- Currently: Polly writes Payment Channel, Paid To, Payment Verified By, Payment Verified At to the Event properties
+- Problem: Polly is AI — she might skip or miss a field
+- Proposed: The Worker writes these fields from the instruction JSON after processing
+- Benefit: The visible fields are always correct (code writes them, not AI)
+- Owner: Warren (Worker code change, separate CR)
+
+**Action 7 — Move Event creation from Basil to Worker**
+- Currently: Basil creates the Event with all required fields
+- Problem: Basil is AI — it can miss relations, write wrong values, or skip verification (as seen in this incident)
+- Proposed: Basil resolves names/dates and passes them to the Worker. The Worker creates the Event with all required fields.
+- Benefit: The Event is always created correctly (code writes it, not AI)
+- Owner: Warren (Worker code change, separate CR)
+
+### What stays AI
+
+| Step | Why it stays AI |
+|---|---|
+| "Antonio" → person record | Fuzzy matching — needs interpretation |
+| "Jose" → coach record | Same |
+| "HiPi" → venue record | Same |
+| "7 October 7-8am" → date/time | Natural language parsing |
+| "paid, bank transfer, Tacit, Nick" → payment facts | Conversation to collect facts |
+
+### The safety improvement
+
+| | Current (AI-heavy) | Proposed (code-heavy) |
+|---|---|---|
+| Event creation | Basil (AI) — unreliable | Worker (code) — always correct |
+| Instruction JSON | Polly (AI) — unreliable | Worker (code) — always correct |
+| Visible fields | Polly (AI) — unreliable | Worker (code) — always correct |
+| Sale + Balance Sheet | Worker (code) | Worker (code) — unchanged |
+| Validation | Worker (code) | Worker (code) — unchanged |
+| Rejection reasons | None (silent) | Worker writes visible callout (Action 4) |
+
+### The tradeoff
+
+| | Current | Proposed |
+|---|---|---|
+| Flexibility | High — handles edge cases | Medium — needs defined paths |
+| Reliability | Low — AI skips steps | High — code always writes fields |
+| Money safety | Worker catches some mistakes | Worker prevents most mistakes |
+| Build effort | Already built | Needs Worker expansion + CRs |
+
+---
+
+## Proposed: Notion Forms intake (from V1 booking flow page)
+
+The V1 booking flow page already proposes a solution to the AI inconsistency problem: **Notion Forms intake**. This is directly relevant to this incident because it moves data entry from AI chat to a deterministic form.
+
+### The problem the form solves
+
+The checkpoint-heavy AI flow takes 5+ minutes per booking. Each field is a separate chat round-trip. Polly asks too many questions. Basil asks too many questions. The operator gets frustrated and the AI can skip steps.
+
+### The form solution
+
+A native Notion Form on TP: Events (or an intake staging database):
+- Operator picks product, date, coach, channel, paid-to from dropdowns in ~30 seconds
+- Zero chat — no AI interpretation needed for data entry
+- The skill validates the filled row and shows ONE confirmation
+- The financial gate (explicit confirm before Payment Processing) stays intact
+
+### How this connects to the incident
+
+| Incident issue | Form solution |
+|---|---|
+| Polly missed `paymentVerifiedAt` | Form has a required "Verification time" field — can't submit without it |
+| Polly wrote wrong/missing relations | Form has dropdowns — can't pick a non-existent person/venue |
+| Worker rejected silently | Form validation catches missing fields before the Worker runs |
+| AI inconsistency | Form is deterministic — same fields every time |
+
+### Implementation phases (from V1 booking flow page)
+
+**Phase 1 — Decide the intake target** (30 min)
+- Option A: Form writes directly to TP: Events
+- Option B (recommended): Form writes to a staging DB — a typo'd submission is harmless; a typo'd Event could reach the Worker
+
+**Phase 2 — Build the form** (30 min, manual in Notion UI)
+- Add only operator-decided fields: product, date, coach, channel, paid-to, verifier, verification time
+- Mark required fields
+- Share the form link
+
+**Phase 3 — Wire it to the flow** (skill edit)
+- Basil reads the submitted row, validates, shows one summary, operator confirms
+- Basil's instruction: "if an Event/intake row already exists with details filled, skip the question loop — validate and confirm instead"
+
+**Phase 4 — Payment half** (optional)
+- Second form or fields on the intake row: Payment type, Channel, Paid to, discount, wallet holder
+- Polly reads them, validates, shows the single payment summary → confirm → JSON instruction
+
+**Phase 5 — Test** (one real booking)
+- Fill the form, run Basil, run Polly, check the Worker output
+
+**Phase 6 — Guardrails**
+- ✅ One explicit confirm before Payment Processing (unchanged)
+- ✅ Worker remains the only financial writer (unchanged)
+- ✅ Form submissions that fail validation → flagged, never silently promoted
+- ✅ Unreleased products rejected at validation
+
+### Recommendation
+
+The Notion Form intake is the fastest path to deterministic data entry without a Worker rewrite. It addresses the root cause (AI inconsistency in data collection) without changing the Worker or the financial controls. It should be combined with Action 4 (Worker rejection logging) so that any remaining issues are visible to the user.
+
+---
+
+*Updated October 27, 2026. This is a static incident report; it does not modify any live system except where explicitly noted as completed.*
