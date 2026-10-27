@@ -1,0 +1,228 @@
+{
+ "object": "database",
+ "id": "3f4afdfb-c3c7-80d9-b943-cd203de3a07b",
+ "cover": null,
+ "icon": {
+  "type": "icon",
+  "icon": {
+   "name": "set-square",
+   "color": "gray"
+  }
+ },
+ "created_time": "2026-10-09T04:19:00.000Z",
+ "created_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_time": "2026-10-15T09:01:00.000Z",
+ "title": [
+  {
+   "type": "text",
+   "text": {
+    "content": "AI: (L2) Routing",
+    "link": null
+   },
+   "annotations": {
+    "bold": false,
+    "italic": false,
+    "strikethrough": false,
+    "underline": false,
+    "code": false,
+    "color": "default"
+   },
+   "plain_text": "AI: (L2) Routing",
+   "href": null
+  }
+ ],
+ "description": [],
+ "is_inline": false,
+ "database_type": null,
+ "properties": {
+  "Last edited time": {
+   "id": "HJ_%5E",
+   "name": "Last edited time",
+   "description": "",
+   "type": "last_edited_time",
+   "last_edited_time": {}
+  },
+  "Can Edit": {
+   "id": "K%7BSD",
+   "name": "Can Edit",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Created time": {
+   "id": "Ntd%5D",
+   "name": "Created time",
+   "description": "",
+   "type": "created_time",
+   "created_time": {}
+  },
+  "Created by": {
+   "id": "RfIY",
+   "name": "Created by",
+   "description": "",
+   "type": "created_by",
+   "created_by": {}
+  },
+  "Template [Self]": {
+   "id": "Tati",
+   "name": "Template [Self]",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3f4afdfb-c3c7-80d9-b943-cd203de3a07b",
+    "data_source_id": "c47afdfb-c3c7-839a-9743-070a3c5a9d30",
+    "type": "single_property",
+    "single_property": {}
+   }
+  },
+  "Min. Access": {
+   "id": "%60Kg%5E",
+   "name": "Min. Access",
+   "description": "Minimum access level inferred from Can Edit, Can Comment and Can View.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  /* Combine all permission names */\n  allAccessGroups, concat(\n    prop(\"Can Edit\"),\n    prop(\"Can Comment\"),\n    prop(\"Can View\")\n  ).map(current.name()),\n  /* Return the broadest group present */\n  ifs(\n    allAccessGroups.includes(\"Team\"), \"Team\",\n    allAccessGroups.includes(\"Leadership\"), \"Leadership\",\n    allAccessGroups.includes(\"Owners\"), \"Owners\",\n    \"Admin\"\n  )\n)"
+   }
+  },
+  "Last edited by": {
+   "id": "%60_J%3F",
+   "name": "Last edited by",
+   "description": "",
+   "type": "last_edited_by",
+   "last_edited_by": {}
+  },
+  "Database Group": {
+   "id": "eftd",
+   "name": "Database Group",
+   "description": "Functional group classification from Source Databases page",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "faVp",
+      "name": "Storage",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "en_r",
+      "name": "Activities",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "ya:v",
+      "name": "Knowledge",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "Jf=H",
+      "name": "Tagging",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": ":Lgu",
+      "name": "Build",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "QdYN",
+      "name": "AI",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "CMkO",
+      "name": "SV",
+      "color": "green",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Can View": {
+   "id": "g%3B%5Cx",
+   "name": "Can View",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Can Comment": {
+   "id": "jLit",
+   "name": "Can Comment",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Description": {
+   "id": "lF%3Cd",
+   "name": "Description",
+   "description": "Concise trigger and outcome shown in the Skills Library.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Home": {
+   "id": "qUz%5C",
+   "name": "Home",
+   "description": "",
+   "type": "button",
+   "button": {}
+  },
+  "Parent item": {
+   "id": "tMm%3E",
+   "name": "Parent item",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3f4afdfb-c3c7-80d9-b943-cd203de3a07b",
+    "data_source_id": "c47afdfb-c3c7-839a-9743-070a3c5a9d30",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Sub-item",
+     "synced_property_id": "xxn%3F"
+    }
+   }
+  },
+  "Sub-item": {
+   "id": "xxn%3F",
+   "name": "Sub-item",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3f4afdfb-c3c7-80d9-b943-cd203de3a07b",
+    "data_source_id": "c47afdfb-c3c7-839a-9743-070a3c5a9d30",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Parent item",
+     "synced_property_id": "tMm%3E"
+    }
+   }
+  },
+  "Name": {
+   "id": "title",
+   "name": "Name",
+   "description": null,
+   "type": "title",
+   "title": {}
+  }
+ },
+ "parent": {
+  "type": "block_id",
+  "block_id": "332afdfb-c3c7-80d7-9e17-c708b0136678"
+ },
+ "url": "https://app.notion.com/p/3f4afdfbc3c780d9b943cd203de3a07b",
+ "public_url": null,
+ "in_trash": false,
+ "archived": false,
+ "request_id": "e93978e4-dab3-4907-aa51-357c02ded64d"
+}

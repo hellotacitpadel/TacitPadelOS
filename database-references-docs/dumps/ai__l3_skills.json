@@ -1,0 +1,416 @@
+{
+ "object": "database",
+ "id": "3f4afdfb-c3c7-8063-bcf1-debcf16ac041",
+ "cover": null,
+ "icon": {
+  "type": "icon",
+  "icon": {
+   "name": "set-square",
+   "color": "gray"
+  }
+ },
+ "created_time": "2026-10-09T04:19:00.000Z",
+ "created_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_time": "2026-10-15T09:00:00.000Z",
+ "title": [
+  {
+   "type": "text",
+   "text": {
+    "content": "AI: (L3) Skills",
+    "link": null
+   },
+   "annotations": {
+    "bold": false,
+    "italic": false,
+    "strikethrough": false,
+    "underline": false,
+    "code": false,
+    "color": "default"
+   },
+   "plain_text": "AI: (L3) Skills",
+   "href": null
+  }
+ ],
+ "description": [],
+ "is_inline": false,
+ "database_type": "skills",
+ "properties": {
+  "Description": {
+   "id": "ApLN",
+   "name": "Description",
+   "description": "Required concise selection metadata: outcome, intended trigger and material boundary. Written for people and Notion Agent skill selection.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Last edited time": {
+   "id": "HJ_%5E",
+   "name": "Last edited time",
+   "description": "",
+   "type": "last_edited_time",
+   "last_edited_time": {}
+  },
+  "Can Edit": {
+   "id": "K%7BSD",
+   "name": "Can Edit",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "References": {
+   "id": "LSvd",
+   "name": "References",
+   "description": "Conditional authoritative references used by this skill.",
+   "type": "relation",
+   "relation": {
+    "database_id": "3f4afdfb-c3c7-80d4-a88d-fefb43cbe46c",
+    "data_source_id": "c7eafdfb-c3c7-8379-a4c1-873d7a352014",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Skills served",
+     "synced_property_id": "yVh%3B"
+    }
+   }
+  },
+  "Class": {
+   "id": "MTJZ",
+   "name": "Class",
+   "description": "Controls the proportionate review and testing path.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "_Vl]",
+      "name": "Lite",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "OjZr",
+      "name": "Standard",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "zTea",
+      "name": "Controlled",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "A@]k",
+      "name": "High-risk",
+      "color": "red",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Created time": {
+   "id": "Ntd%5D",
+   "name": "Created time",
+   "description": "",
+   "type": "created_time",
+   "created_time": {}
+  },
+  "Lifecycle": {
+   "id": "P~ZY",
+   "name": "Lifecycle",
+   "description": "Publication and maintenance state for this skill.",
+   "type": "status",
+   "status": {
+    "options": [
+     {
+      "id": "rz}:",
+      "name": "Draft",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "exN;",
+      "name": "In review",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "uuP`",
+      "name": "Testing",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "dqCP",
+      "name": "Active",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "{Q?I",
+      "name": "Held",
+      "color": "red",
+      "description": null
+     },
+     {
+      "id": "jTZI",
+      "name": "Superseded",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "M^Mb",
+      "name": "Retired",
+      "color": "brown",
+      "description": null
+     }
+    ],
+    "groups": [
+     {
+      "id": ">@>R",
+      "name": "To-do",
+      "color": "default",
+      "option_ids": [
+       "rz}:"
+      ]
+     },
+     {
+      "id": ":yKL",
+      "name": "In progress",
+      "color": "default",
+      "option_ids": [
+       "exN;",
+       "uuP`"
+      ]
+     },
+     {
+      "id": "EsFh",
+      "name": "Complete",
+      "color": "default",
+      "option_ids": [
+       "dqCP",
+       "{Q?I",
+       "jTZI",
+       "M^Mb"
+      ]
+     }
+    ],
+    "default_option": null
+   }
+  },
+  "Created by": {
+   "id": "RfIY",
+   "name": "Created by",
+   "description": "",
+   "type": "created_by",
+   "created_by": {}
+  },
+  "Template [Self]": {
+   "id": "Tati",
+   "name": "Template [Self]",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3f4afdfb-c3c7-8063-bcf1-debcf16ac041",
+    "data_source_id": "e43afdfb-c3c7-839e-8082-071aad86b7de",
+    "type": "single_property",
+    "single_property": {}
+   }
+  },
+  "Min. Access": {
+   "id": "%60Kg%5E",
+   "name": "Min. Access",
+   "description": "Minimum access level inferred from Can Edit, Can Comment and Can View.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  /* Combine all permission names */\n  allAccessGroups, concat(\n    prop(\"Can Edit\"),\n    prop(\"Can Comment\"),\n    prop(\"Can View\")\n  ).map(current.name()),\n  /* Return the broadest group present */\n  ifs(\n    allAccessGroups.includes(\"Team\"), \"Team\",\n    allAccessGroups.includes(\"Leadership\"), \"Leadership\",\n    allAccessGroups.includes(\"Owners\"), \"Owners\",\n    \"Admin\"\n  )\n)"
+   }
+  },
+  "Last edited by": {
+   "id": "%60_J%3F",
+   "name": "Last edited by",
+   "description": "",
+   "type": "last_edited_by",
+   "last_edited_by": {}
+  },
+  "Write boundary": {
+   "id": "%60t%5C%5C",
+   "name": "Write boundary",
+   "description": "Plain-language statement of permitted and prohibited changes.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Owner": {
+   "id": "ak%40%60",
+   "name": "Owner",
+   "description": "Named accountable owner for the skill.",
+   "type": "people",
+   "people": {}
+  },
+  "Database Group": {
+   "id": "eftd",
+   "name": "Database Group",
+   "description": "Functional group classification from Source Databases page",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "faVp",
+      "name": "Storage",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "en_r",
+      "name": "Activities",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "ya:v",
+      "name": "Knowledge",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "Jf=H",
+      "name": "Tagging",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": ":Lgu",
+      "name": "Build",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "QdYN",
+      "name": "AI",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "CMkO",
+      "name": "SV",
+      "color": "green",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Can View": {
+   "id": "g%3B%5Cx",
+   "name": "Can View",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Can Comment": {
+   "id": "jLit",
+   "name": "Can Comment",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Review due": {
+   "id": "j_Ib",
+   "name": "Review due",
+   "description": "Date by which the skill requires a deliberate review.",
+   "type": "date",
+   "date": {}
+  },
+  "Files": {
+   "id": "jfyH",
+   "name": "Files",
+   "description": null,
+   "type": "files",
+   "files": {}
+  },
+  "Function": {
+   "id": "lqnX",
+   "name": "Function",
+   "description": "Primary capability function. Each V2 Skill has one: Operating, Build or Control.",
+   "type": "multi_select",
+   "multi_select": {
+    "options": [
+     {
+      "id": "Z`JO",
+      "name": "Operating",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "IjU@",
+      "name": "Build",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "DrER",
+      "name": "Control",
+      "color": "orange",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Home": {
+   "id": "qUz%5C",
+   "name": "Home",
+   "description": "",
+   "type": "button",
+   "button": {}
+  },
+  "Parent item": {
+   "id": "tMm%3E",
+   "name": "Parent item",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3f4afdfb-c3c7-8063-bcf1-debcf16ac041",
+    "data_source_id": "e43afdfb-c3c7-839e-8082-071aad86b7de",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Sub-item",
+     "synced_property_id": "xxn%3F"
+    }
+   }
+  },
+  "Sub-item": {
+   "id": "xxn%3F",
+   "name": "Sub-item",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3f4afdfb-c3c7-8063-bcf1-debcf16ac041",
+    "data_source_id": "e43afdfb-c3c7-839e-8082-071aad86b7de",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Parent item",
+     "synced_property_id": "tMm%3E"
+    }
+   }
+  },
+  "Name": {
+   "id": "title",
+   "name": "Name",
+   "description": null,
+   "type": "title",
+   "title": {}
+  }
+ },
+ "parent": {
+  "type": "block_id",
+  "block_id": "332afdfb-c3c7-80d7-9e17-c708b0136678"
+ },
+ "url": "https://app.notion.com/p/3f4afdfbc3c78063bcf1debcf16ac041",
+ "public_url": null,
+ "in_trash": false,
+ "archived": false,
+ "request_id": "09165011-c65b-4cc1-a45c-363688f86906"
+}

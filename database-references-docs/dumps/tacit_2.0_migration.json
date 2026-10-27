@@ -1,0 +1,229 @@
+{
+ "object": "database",
+ "id": "f001fdd9-1ca2-423e-be4c-26f8decc48e3",
+ "cover": null,
+ "icon": {
+  "type": "emoji",
+  "emoji": "\ud83d\udea7"
+ },
+ "created_time": "2026-09-27T10:53:00.000Z",
+ "created_by": {
+  "object": "user",
+  "id": "3e5afdfb-c3c7-81ef-91d2-00274cc92fdf"
+ },
+ "last_edited_by": {
+  "object": "user",
+  "id": "3e5afdfb-c3c7-81ef-91d2-00274cc92fdf"
+ },
+ "last_edited_time": "2026-09-27T10:53:00.000Z",
+ "title": [
+  {
+   "type": "text",
+   "text": {
+    "content": "Tacit 2.0 migration",
+    "link": null
+   },
+   "annotations": {
+    "bold": false,
+    "italic": false,
+    "strikethrough": false,
+    "underline": false,
+    "code": false,
+    "color": "default"
+   },
+   "plain_text": "Tacit 2.0 migration",
+   "href": null
+  }
+ ],
+ "description": [],
+ "is_inline": false,
+ "database_type": null,
+ "properties": {
+  "Updated": {
+   "id": "%3BQ~%3A",
+   "name": "Updated",
+   "description": null,
+   "type": "last_edited_time",
+   "last_edited_time": {}
+  },
+  "State": {
+   "id": "%3F%3CnR",
+   "name": "State",
+   "description": null,
+   "type": "status",
+   "status": {
+    "options": [
+     {
+      "id": "1c021dd6-d542-4145-8a03-2e9f2c7a0ddf",
+      "name": "Draft",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "8823a41f-1dac-409b-b37e-f0f1407dd980",
+      "name": "Agreed",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "261d939d-40e7-4c46-91cb-72c398063175",
+      "name": "Superseded",
+      "color": "red",
+      "description": null
+     }
+    ],
+    "groups": [
+     {
+      "id": "fe47e0f3-d948-4b27-93fa-b3a3f9971e63",
+      "name": "To-do",
+      "color": "gray",
+      "option_ids": [
+       "1c021dd6-d542-4145-8a03-2e9f2c7a0ddf",
+       "8823a41f-1dac-409b-b37e-f0f1407dd980",
+       "261d939d-40e7-4c46-91cb-72c398063175"
+      ]
+     },
+     {
+      "id": "24093302-6e88-4ce4-9483-d959404c734a",
+      "name": "In progress",
+      "color": "blue",
+      "option_ids": []
+     },
+     {
+      "id": "c9b266b9-f7b1-4fbf-a759-6b978453e326",
+      "name": "Complete",
+      "color": "green",
+      "option_ids": []
+     }
+    ],
+    "default_option": "Draft"
+   }
+  },
+  "Layer": {
+   "id": "vTTM",
+   "name": "Layer",
+   "description": null,
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "15e5a715-2778-4466-a898-bf45d1c7b632",
+      "name": "0 Control plane",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "881870bc-5ce2-4f14-9999-b6d3f055cd60",
+      "name": "1 Data model",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "6667e904-0977-4640-99f6-90fceb53b7ff",
+      "name": "2 Access model",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "05d7d1d4-d53b-40e8-bfed-96169b83303e",
+      "name": "3 Derivation",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "cba666df-b05e-4ba7-8759-8a1ab90edc48",
+      "name": "4 Execution",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "cece66e7-0ffd-447a-8e98-5a861fa69f04",
+      "name": "5 Interface",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": "6e7a3eed-7037-4937-b286-79c9a66ebb5d",
+      "name": "6 Documentation",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "ed6f3cb5-487a-41ac-b843-3ae5ff39ad16",
+      "name": "Programme",
+      "color": "gray",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Type": {
+   "id": "yG%5Bx",
+   "name": "Type",
+   "description": null,
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "d26652f1-f031-49dd-aba1-cc1de93822d6",
+      "name": "Standard",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "5e1fc503-0a39-4851-bcfa-ac7243bb494f",
+      "name": "Register",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "8934165d-b8ff-405b-8b03-dd986ca677ef",
+      "name": "Target state",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "22f82ec6-b7ae-4a88-84cd-267180588516",
+      "name": "Working context",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "f8417434-de86-4904-87b9-24fb66a52c75",
+      "name": "Unit of work",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "fb172cde-a6dc-4dc2-84dd-4dbfae14e7b1",
+      "name": "Decision",
+      "color": "red",
+      "description": null
+     },
+     {
+      "id": "da825cc9-63d4-48d3-98fc-8ffe6e21050c",
+      "name": "Reference",
+      "color": "gray",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Name": {
+   "id": "title",
+   "name": "Name",
+   "description": null,
+   "type": "title",
+   "title": {}
+  }
+ },
+ "parent": {
+  "type": "page_id",
+  "page_id": "261afdfb-c3c7-8126-b2d2-e06698dc28d4"
+ },
+ "url": "https://app.notion.com/p/f001fdd91ca2423ebe4c26f8decc48e3",
+ "public_url": null,
+ "in_trash": false,
+ "archived": false,
+ "request_id": "5ace38cb-cfc0-4a63-a899-47c4e634c9df"
+}

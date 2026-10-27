@@ -1,0 +1,655 @@
+{
+ "object": "database",
+ "id": "261afdfb-c3c7-8153-b58b-c7959ae8256e",
+ "cover": null,
+ "icon": {
+  "type": "icon",
+  "icon": {
+   "name": "baseball",
+   "color": "yellow"
+  }
+ },
+ "created_time": "2025-09-01T14:19:00.000Z",
+ "created_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_by": {
+  "object": "user",
+  "id": "404d872b-594c-8139-9f67-00027da82f95"
+ },
+ "last_edited_time": "2026-10-26T07:02:00.000Z",
+ "title": [
+  {
+   "type": "text",
+   "text": {
+    "content": "TP: Events",
+    "link": null
+   },
+   "annotations": {
+    "bold": false,
+    "italic": false,
+    "strikethrough": false,
+    "underline": false,
+    "code": false,
+    "color": "default"
+   },
+   "plain_text": "TP: Events",
+   "href": null
+  }
+ ],
+ "description": [],
+ "is_inline": false,
+ "database_type": null,
+ "properties": {
+  "Responsible": {
+   "id": "%3BRF%5E",
+   "name": "Responsible",
+   "description": null,
+   "type": "people",
+   "people": {}
+  },
+  "Created time": {
+   "id": "%3D%7DDS",
+   "name": "Created time",
+   "description": null,
+   "type": "created_time",
+   "created_time": {}
+  },
+  "Last edited by": {
+   "id": "%40eAk",
+   "name": "Last edited by",
+   "description": null,
+   "type": "last_edited_by",
+   "last_edited_by": {}
+  },
+  "Own Sale ID": {
+   "id": "AJMr",
+   "name": "Own Sale ID",
+   "description": "Auto-increment ID from the first linked Sale.",
+   "type": "formula",
+   "formula": {
+    "expression": "if({{notion:block_property:Z_gP:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}.length() > 0,\n  {{notion:block_property:Z_gP:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}.first().{{notion:block_property:%5Cb%5E_:261afdfb-c3c7-81d5-b4a7-000b0f69814f:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n  \"\"\n)"
+   }
+  },
+  "Player Academy Tier": {
+   "id": "A%7BNh",
+   "name": "Player Academy Tier",
+   "description": null,
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "61b1a406-864d-4b1f-91da-9b90f0479e01",
+      "name": "Basic",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "0f08608c-3914-465b-a523-065e3000f46f",
+      "name": "Standard",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "0f97a31e-8b95-4592-838f-32247fb702d3",
+      "name": "Premium",
+      "color": "purple",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Sub Event": {
+   "id": "BJGf",
+   "name": "Sub Event",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "261afdfb-c3c7-8153-b58b-c7959ae8256e",
+    "data_source_id": "261afdfb-c3c7-8178-98cd-000b29cdbb16",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Parent Event",
+     "synced_property_id": "%7B%3A%3Dr"
+    }
+   }
+  },
+  "ID": {
+   "id": "E%3AvL",
+   "name": "ID",
+   "description": "Shows Own Sale ID if no parent, otherwise shows Parent Sale ID.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(prop(\"Parent Event\").length() == 0,\n  prop(\"Own Sale ID\"),\n  prop(\"Parent Sale ID\")\n)"
+   }
+  },
+  "Cancellation Notes [move to resources]": {
+   "id": "F%5CjI",
+   "name": "Cancellation Notes [move to resources]",
+   "description": null,
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Seats Available": {
+   "id": "HNQM",
+   "name": "Seats Available",
+   "description": "Capacity minus count of linked Sales. Per Decision 14.",
+   "type": "formula",
+   "formula": {
+    "expression": "prop(\"Capacity\") - prop(\"Sales\").length()"
+   }
+  },
+  "Can Edit": {
+   "id": "JTA%40",
+   "name": "Can Edit",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Availability": {
+   "id": "LkNv",
+   "name": "Availability",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  /* Get coaches directly from Coaches relation */\n  eventCoaches, {{notion:block_property:V%3B_L:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n  myCoach, eventCoaches.first(),\n  myScheduled, {{notion:block_property:mwoF:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n  myStatus, {{notion:block_property:cUBI:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n  \n  /* Skip if no coach assigned or no schedule set */\n  if(empty(myCoach) or empty(myScheduled) or myStatus == \"Cancelled\",\n    \"\",\n    lets(\n      /* Get all events where this coach is assigned */\n      coachEvents, myCoach.{{notion:block_property:W%3C%3C%3A:261afdfb-c3c7-81f8-8cda-000ba9e72403:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n      \n      /* Find events at the same scheduled time that aren't cancelled */\n      conflictingEvents, coachEvents.filter(\n        current.{{notion:block_property:mwoF:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == myScheduled and\n        current.{{notion:block_property:cUBI:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} != \"Cancelled\"\n      ),\n      \n      /* Check sub-events for coach conflicts */\n      subEventCoaches, {{notion:block_property:BJGf:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}\n        .map(current.{{notion:block_property:V%3B_L:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}})\n        .flat(),\n      \n      /* Get first sub-event coach */\n      subCoach, subEventCoaches.first(),\n      \n      /* Check sub-event coach's other events */\n      subCoachConflicts, if(empty(subCoach), 0,\n        subCoach.{{notion:block_property:W%3C%3C%3A:261afdfb-c3c7-81f8-8cda-000ba9e72403:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}.filter(\n          current.{{notion:block_property:mwoF:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == myScheduled and\n          current.{{notion:block_property:cUBI:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} != \"Cancelled\"\n        ).length()\n      ),\n      \n      /* Return availability status */\n      ifs(\n        conflictingEvents.length() > 1, \"\u26a0\ufe0f Conflict (\" + format(conflictingEvents.length() - 1) + \" other)\",\n        subCoachConflicts > 1, \"\u26a0\ufe0f Sub-coach conflict\",\n        \"\u2705 Available\"\n      )\n    )\n  )\n)"
+   }
+  },
+  "Created by": {
+   "id": "MMF%3C",
+   "name": "Created by",
+   "description": null,
+   "type": "created_by",
+   "created_by": {}
+  },
+  "Informed": {
+   "id": "MrX%5B",
+   "name": "Informed",
+   "description": null,
+   "type": "people",
+   "people": {}
+  },
+  "Financial Route": {
+   "id": "P%3CmE",
+   "name": "Financial Route",
+   "description": "Controls which financial-processing route applies. Existing records remain blank; a later activation unit will define controlled defaults.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "xNE_",
+      "name": "Legacy",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "C`:I",
+      "name": "Payment V1",
+      "color": "blue",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Facility": {
+   "id": "TYOW",
+   "name": "Facility",
+   "description": "Type of facility where the event takes place",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "3af39f6c-4ebf-4698-9d91-f69df305c6d0",
+      "name": "TBC",
+      "color": "red",
+      "description": null
+     },
+     {
+      "id": "Nhwr",
+      "name": "On Court",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "|n;p",
+      "name": "Classroom",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "mvHV",
+      "name": "Gym",
+      "color": "brown",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Can View": {
+   "id": "U_Oh",
+   "name": "Can View",
+   "description": null,
+   "type": "people",
+   "people": {}
+  },
+  "Split: Tacit %": {
+   "id": "Vvnh",
+   "name": "Split: Tacit %",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  orgs, {{notion:block_property:RH%5Dy:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n  owners, orgs.filter(current.{{notion:block_property:Uj%5Eu:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n  winner, if(owners.length() > 0, owners.first(), orgs.first()),\n  if(empty(winner),\n    0,\n    ifs(\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Private Lesson\", if(empty(winner.{{notion:block_property:AHBb:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:AHBb:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Clinic\", if(empty(winner.{{notion:block_property:fFhG:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:fFhG:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Player Academy\", if(empty(winner.{{notion:block_property:%40AOj:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:%40AOj:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Coaches Academy\", if(empty(winner.{{notion:block_property:%3DJ%3FL:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:%3DJ%3FL:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Play with Coach\", if(empty(winner.{{notion:block_property:_xcI:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:_xcI:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Match with Coach\", if(empty(winner.{{notion:block_property:pS%3An:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:pS%3An:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      0\n    )\n  )\n)"
+   }
+  },
+  "Min. Access": {
+   "id": "XHj_",
+   "name": "Min. Access",
+   "description": "Outputs the minimum access level based on whether the Team, Leadership, or Owners permission groups appear in any of the Can Edit, Can Comment, or Can View properties; otherwise outputs Admin.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  /* Combine all people from the three permission properties */\n  allPeople, concat(\n    prop(\"Can Edit\"),\n    prop(\"Can Comment\"),\n    prop(\"Can View\")\n  ),\n  /* Extract display names from all people and groups */\n  allNames, allPeople.map(current.name()),\n  /* Check for specific groups in priority order */\n  ifs(\n    allNames.includes(\"Team\"), \"Team\",\n    allNames.includes(\"Leadership\"), \"Leadership\",\n    allNames.includes(\"Owners\"), \"Owners\",\n    \"Admin\"\n  )\n)"
+   }
+  },
+  "Last edited time": {
+   "id": "%5Cpew",
+   "name": "Last edited time",
+   "description": null,
+   "type": "last_edited_time",
+   "last_edited_time": {}
+  },
+  "Coach Level": {
+   "id": "b%3CV%3E",
+   "name": "Coach Level",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "{{notion:block_property:V%3B_L:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}.first().{{notion:block_property:Lx%40J:261afdfb-c3c7-81f8-8cda-000ba9e72403:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}"
+   }
+  },
+  "Split: Club %": {
+   "id": "cP%3B%5E",
+   "name": "Split: Club %",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  orgs, {{notion:block_property:RH%5Dy:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n  owners, orgs.filter(current.{{notion:block_property:Uj%5Eu:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n  winner, if(owners.length() > 0, owners.first(), orgs.first()),\n  if(empty(winner),\n    0,\n    ifs(\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Private Lesson\", if(empty(winner.{{notion:block_property:G%3FDy:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:G%3FDy:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Clinic\", if(empty(winner.{{notion:block_property:G%3BdH:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:G%3BdH:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Player Academy\", if(empty(winner.{{notion:block_property:A%3FHd:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:A%3FHd:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Coaches Academy\", if(empty(winner.{{notion:block_property:bQvz:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:bQvz:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Play with Coach\", if(empty(winner.{{notion:block_property:jBB%3F:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:jBB%3F:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Match with Coach\", if(empty(winner.{{notion:block_property:%60yI%7C:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:%60yI%7C:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      0\n    )\n  )\n)"
+   }
+  },
+  "Status": {
+   "id": "cUBI",
+   "name": "Status",
+   "description": "",
+   "type": "status",
+   "status": {
+    "options": [
+     {
+      "id": "MipP",
+      "name": "Inbox",
+      "color": "brown",
+      "description": ""
+     },
+     {
+      "id": "fJ@S",
+      "name": "Rearrange",
+      "color": "orange",
+      "description": ""
+     },
+     {
+      "id": "EXIs",
+      "name": "Pending",
+      "color": "yellow",
+      "description": ""
+     },
+     {
+      "id": "ZJOM",
+      "name": "Payment Processing",
+      "color": "blue",
+      "description": "Temporary Worker-owned payment-processing state. Native automation invokes Payment V1 and the Worker returns the Event to Pending or moves it to Confirmed."
+     },
+     {
+      "id": "TBi]",
+      "name": "Cancelled",
+      "color": "red",
+      "description": ""
+     },
+     {
+      "id": "198f985c-2d32-4ec1-927d-c7b2b785506b",
+      "name": "Confirmed",
+      "color": "green",
+      "description": ""
+     }
+    ],
+    "groups": [
+     {
+      "id": "28a662d7-01df-44fa-adc6-56107e6bc987",
+      "name": "To-do",
+      "color": "gray",
+      "option_ids": [
+       "MipP",
+       "fJ@S"
+      ]
+     },
+     {
+      "id": "34dbfa9a-7655-4fd0-94ec-44c243555531",
+      "name": "In progress",
+      "color": "blue",
+      "option_ids": [
+       "EXIs",
+       "ZJOM"
+      ]
+     },
+     {
+      "id": "e98ca67d-aae3-42b5-9f75-cfe93e413249",
+      "name": "Complete",
+      "color": "green",
+      "option_ids": [
+       "TBi]",
+       "198f985c-2d32-4ec1-927d-c7b2b785506b"
+      ]
+     }
+    ],
+    "default_option": "Inbox"
+   }
+  },
+  "Published Price List": {
+   "id": "gGf%5B",
+   "name": "Published Price List",
+   "description": "Price period committed when a joinable event is published. This is not a payment field.",
+   "type": "relation",
+   "relation": {
+    "database_id": "3f2afdfb-c3c7-807e-808e-d85944555557",
+    "data_source_id": "4baafdfb-c3c7-820b-b36b-07519bd502aa",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Published Events",
+     "synced_property_id": "JZnj"
+    }
+   }
+  },
+  "Capacity": {
+   "id": "jwlv",
+   "name": "Capacity",
+   "description": "Maximum number of students for this event. Used with Seats Available formula.",
+   "type": "number",
+   "number": {
+    "format": "number"
+   }
+  },
+  "Parent Sale ID": {
+   "id": "kWkG",
+   "name": "Parent Sale ID",
+   "description": "Own Sale ID from the first related Parent Event.",
+   "type": "formula",
+   "formula": {
+    "expression": "prop(\"Parent Event\").first().prop(\"Own Sale ID\")"
+   }
+  },
+  "Scheduled": {
+   "id": "mwoF",
+   "name": "Scheduled",
+   "description": null,
+   "type": "date",
+   "date": {}
+  },
+  "Split: Revenue Scope": {
+   "id": "nWjw",
+   "name": "Split: Revenue Scope",
+   "description": "Academy Fees for all products. Combined only when Event Type = Play with Coach (court included in flat price). v11 update: Clinics moved off Combined to Academy Fees (80/20 split). Deployed 1 Jul 2026.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  orgs, {{notion:block_property:RH%5Dy:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n  owners, orgs.filter(current.{{notion:block_property:Uj%5Eu:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n  winner, if(owners.length() > 0, owners.first(), orgs.first()),\n  if(empty(winner),\n    \"Academy Fees\",\n    ifs(\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Private Lesson\", if(winner.{{notion:block_property:J_bn:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}, \"Combined\", \"Academy Fees\"),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Clinic\", if(winner.{{notion:block_property:i%60Bh:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}, \"Combined\", \"Academy Fees\"),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Player Academy\", if(winner.{{notion:block_property:%5Bl%3B%5D:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}, \"Combined\", \"Academy Fees\"),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Coaches Academy\", if(winner.{{notion:block_property:EA%3Cz:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}, \"Combined\", \"Academy Fees\"),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Play with Coach\", if(winner.{{notion:block_property:%7BMgl:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}, \"Combined\", \"Academy Fees\"),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Match with Coach\", if(winner.{{notion:block_property:%3AC%5Eb:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}, \"Combined\", \"Academy Fees\"),\n      \"Academy Fees\"\n    )\n  )\n)"
+   }
+  },
+  "Can Comment": {
+   "id": "nz%3F%3B",
+   "name": "Can Comment",
+   "description": null,
+   "type": "people",
+   "people": {}
+  },
+  "Split: Third Party %": {
+   "id": "o%5Bkb",
+   "name": "Split: Third Party %",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  orgs, {{notion:block_property:RH%5Dy:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n  owners, orgs.filter(current.{{notion:block_property:Uj%5Eu:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n  winner, if(owners.length() > 0, owners.first(), orgs.first()),\n  if(empty(winner),\n    0,\n    ifs(\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Private Lesson\", if(empty(winner.{{notion:block_property:%3Fik%3D:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:%3Fik%3D:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Clinic\", if(empty(winner.{{notion:block_property:TFol:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:TFol:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Player Academy\", if(empty(winner.{{notion:block_property:k%7Cn%5E:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:k%7Cn%5E:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Coaches Academy\", if(empty(winner.{{notion:block_property:vxKm:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:vxKm:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Play with Coach\", if(empty(winner.{{notion:block_property:Kn%5CR:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:Kn%5CR:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      {{notion:block_property:yAuC:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}} == \"Match with Coach\", if(empty(winner.{{notion:block_property:%5DmEz:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), 0, winner.{{notion:block_property:%5DmEz:261afdfb-c3c7-815c-9365-000bb92cc4a3:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n      0\n    )\n  )\n)"
+   }
+  },
+  "Payment Processing Exception": {
+   "id": "pnR_",
+   "name": "Payment Processing Exception",
+   "description": "Manual exception marker for a booking that must not proceed through the normal payment path until resolved.",
+   "type": "checkbox",
+   "checkbox": {}
+  },
+  "Published Price per Student (IDR)": {
+   "id": "rl%3BF",
+   "name": "Published Price per Student (IDR)",
+   "description": "Published joinable-product price commitment per student. This is not a payment field.",
+   "type": "number",
+   "number": {
+    "format": "rupiah"
+   }
+  },
+  "Price (IDR)": {
+   "id": "s%3BUR",
+   "name": "Price (IDR)",
+   "description": null,
+   "type": "formula",
+   "formula": {
+    "expression": "{{notion:block_property:Z_gP:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}.map(current.{{notion:block_property:NEcQ:261afdfb-c3c7-81d5-b4a7-000b0f69814f:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}).sum()"
+   }
+  },
+  "Database Group": {
+   "id": "tHIo",
+   "name": "Database Group",
+   "description": "Functional group classification from Source Databases page",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "xNE_",
+      "name": "Storage",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "C`:I",
+      "name": "Activities",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "Hfs~",
+      "name": "Knowledge",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "Gx^b",
+      "name": "Tagging",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": "HM{O",
+      "name": "Build",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "[~KM",
+      "name": "AI",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "Rap@",
+      "name": "SV",
+      "color": "green",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Clinic Level": {
+   "id": "uT~%3E",
+   "name": "Clinic Level",
+   "description": "",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "S@]r",
+      "name": "U8",
+      "color": "pink",
+      "description": ""
+     },
+     {
+      "id": "GSYy",
+      "name": "U14",
+      "color": "green",
+      "description": ""
+     },
+     {
+      "id": "hvNV",
+      "name": "U18",
+      "color": "blue",
+      "description": ""
+     },
+     {
+      "id": "W_R[",
+      "name": "Introduction",
+      "color": "gray",
+      "description": ""
+     },
+     {
+      "id": "{tgz",
+      "name": "Beginner",
+      "color": "orange",
+      "description": ""
+     },
+     {
+      "id": "\\iW?",
+      "name": "Intermediate",
+      "color": "purple",
+      "description": ""
+     },
+     {
+      "id": "|ZO?",
+      "name": "Advanced",
+      "color": "red",
+      "description": ""
+     }
+    ]
+   }
+  },
+  "Creation Check": {
+   "id": "wc%5CC",
+   "name": "Creation Check",
+   "description": "Presence check for expected downstream records. \ud83d\udfe2 = all expected records are present (Pattern A: Sale + Hourly Rate; Pattern B: Hourly Rate), or Promo with no Sale/Hourly Rate. \ud83d\udfe1 = partial Pattern A. \ud83d\udd34 = expected records missing, or a Promo has a Sale/Hourly Rate. Blank = not Confirmed.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  hasSale, prop(\"Sales\").length() > 0,\n  hasHR, prop(\"Hourly Rate\").length() > 0,\n  isPatternA, prop(\"Event Type\") == \"Private Lesson\" or prop(\"Event Type\") == \"Match with Coach\",\n  isPromo, prop(\"Event Type\") == \"Promo\",\n  ifs(\n    prop(\"Status\") != \"Confirmed\", \"\",\n    isPromo, if(hasSale or hasHR, \"\ud83d\udd34\", \"\ud83d\udfe2\"),\n    isPatternA and hasSale and hasHR, \"\ud83d\udfe2\",\n    isPatternA and (hasSale or hasHR), \"\ud83d\udfe1\",\n    isPatternA, \"\ud83d\udd34\",\n    hasHR, \"\ud83d\udfe2\",\n    \"\ud83d\udd34\"\n  )\n)"
+   }
+  },
+  "Event Type": {
+   "id": "yAuC",
+   "name": "Event Type",
+   "description": "Derives Event Type from Areas, with Clinic Format taking priority. Marketing maps to Promo when Clinic Format is empty. Existing Area mappings remain unchanged.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  /* Get area names from the Areas relation */\n  areaNames, {{notion:block_property:elAV:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}.map(current.{{notion:block_property:title:261afdfb-c3c7-81b5-94ae-000b701183cd:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}),\n\n  /* Clinic Format keeps priority; Marketing maps to Promo when it is empty */\n  ifs(\n    not empty({{notion:block_property:zVwB:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}}), {{notion:block_property:zVwB:00000000-0000-0000-0000-000000000000:728afdfb-c3c7-816d-b8e3-0003a3b6442c}},\n    areaNames.includes(\"Marketing\"), \"Promo\",\n    areaNames.includes(\"Private Lessons\"), \"Private Lesson\",\n    areaNames.includes(\"Clinics\"), \"Clinic\",\n    areaNames.includes(\"Match with Coach\"), \"Match with Coach\",\n    areaNames.includes(\"Play with Coach\"), \"Play with Coach\",\n    areaNames.includes(\"Player Academy\"), \"Player Academy\",\n    areaNames.includes(\"Coaches Academy\"), \"Coaches Academy\",\n    areaNames.includes(\"Overseas Clubs\"), \"Private Lesson\",\n    \"\"\n  )\n)"
+   }
+  },
+  "Cancelled By...": {
+   "id": "zMK_",
+   "name": "Cancelled By...",
+   "description": "Who initiated the cancellation. Student = customer cancelled. Tacit = Tacit cancelled (e.g. coach sick, below minimum). Club = the club/venue cancelled the session. Aligned with TP: Sales \"Cancelled By\" options 16 Jul 2026.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "\\ew{",
+      "name": "Student",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "C`:I",
+      "name": "Tacit",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "Hfs~",
+      "name": "Club",
+      "color": "green",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Clinic Format": {
+   "id": "zVwB",
+   "name": "Clinic Format",
+   "description": "",
+   "type": "select",
+   "select": {
+    "options": []
+   }
+  },
+  "Parent Event": {
+   "id": "%7B%3A%3Dr",
+   "name": "Parent Event",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "261afdfb-c3c7-8153-b58b-c7959ae8256e",
+    "data_source_id": "261afdfb-c3c7-8178-98cd-000b29cdbb16",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Sub Event",
+     "synced_property_id": "BJGf"
+    }
+   }
+  },
+  "TP: Event [Self]": {
+   "id": "~GOs",
+   "name": "TP: Event [Self]",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "261afdfb-c3c7-8153-b58b-c7959ae8256e",
+    "data_source_id": "261afdfb-c3c7-8178-98cd-000b29cdbb16",
+    "type": "single_property",
+    "single_property": {}
+   }
+  },
+  "Booking System": {
+   "id": "~otE",
+   "name": "Booking System",
+   "description": null,
+   "type": "button",
+   "button": {}
+  },
+  "Event": {
+   "id": "title",
+   "name": "Event",
+   "description": null,
+   "type": "title",
+   "title": {}
+  }
+ },
+ "parent": {
+  "type": "block_id",
+  "block_id": "2c3afdfb-c3c7-8009-9f27-d0e6ec3e959a"
+ },
+ "url": "https://app.notion.com/p/261afdfbc3c78153b58bc7959ae8256e",
+ "public_url": null,
+ "in_trash": false,
+ "archived": false,
+ "request_id": "1c84a5aa-b94c-4281-9c83-3bbb77613f22"
+}

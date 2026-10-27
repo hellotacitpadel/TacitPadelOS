@@ -1,0 +1,380 @@
+{
+ "object": "database",
+ "id": "3f4afdfb-c3c7-80d4-a88d-fefb43cbe46c",
+ "cover": null,
+ "icon": {
+  "type": "icon",
+  "icon": {
+   "name": "set-square",
+   "color": "gray"
+  }
+ },
+ "created_time": "2026-10-09T04:40:00.000Z",
+ "created_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_time": "2026-10-15T09:00:00.000Z",
+ "title": [
+  {
+   "type": "text",
+   "text": {
+    "content": "AI: (L4) References",
+    "link": null
+   },
+   "annotations": {
+    "bold": false,
+    "italic": false,
+    "strikethrough": false,
+    "underline": false,
+    "code": false,
+    "color": "default"
+   },
+   "plain_text": "AI: (L4) References",
+   "href": null
+  }
+ ],
+ "description": [],
+ "is_inline": false,
+ "database_type": null,
+ "properties": {
+  "Loaded when": {
+   "id": "CKd%7C",
+   "name": "Loaded when",
+   "description": "Exact condition under which a skill should load this reference.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Last edited time": {
+   "id": "HJ_%5E",
+   "name": "Last edited time",
+   "description": "",
+   "type": "last_edited_time",
+   "last_edited_time": {}
+  },
+  "Last verified": {
+   "id": "JdyX",
+   "name": "Last verified",
+   "description": "Date the reference was last checked against its declared authority.",
+   "type": "date",
+   "date": {}
+  },
+  "Can Edit": {
+   "id": "K%7BSD",
+   "name": "Can Edit",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Created time": {
+   "id": "Ntd%5D",
+   "name": "Created time",
+   "description": "",
+   "type": "created_time",
+   "created_time": {}
+  },
+  "Created by": {
+   "id": "RfIY",
+   "name": "Created by",
+   "description": "",
+   "type": "created_by",
+   "created_by": {}
+  },
+  "Template [Self]": {
+   "id": "Tati",
+   "name": "Template [Self]",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3f4afdfb-c3c7-80d4-a88d-fefb43cbe46c",
+    "data_source_id": "c7eafdfb-c3c7-8379-a4c1-873d7a352014",
+    "type": "single_property",
+    "single_property": {}
+   }
+  },
+  "Authority": {
+   "id": "WQ~G",
+   "name": "Authority",
+   "description": "What kind of authority this reference has when loaded.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "dZLs",
+      "name": "Source of truth",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "xnSa",
+      "name": "Operating standard",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "qelK",
+      "name": "Implementation guide",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "G|c^",
+      "name": "Evidence",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "C|?G",
+      "name": "Example",
+      "color": "gray",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Min. Access": {
+   "id": "%60Kg%5E",
+   "name": "Min. Access",
+   "description": "Minimum access level inferred from Can Edit, Can Comment and Can View.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  /* Combine all permission names */\n  allAccessGroups, concat(\n    prop(\"Can Edit\"),\n    prop(\"Can Comment\"),\n    prop(\"Can View\")\n  ).map(current.name()),\n  /* Return the broadest group present */\n  ifs(\n    allAccessGroups.includes(\"Team\"), \"Team\",\n    allAccessGroups.includes(\"Leadership\"), \"Leadership\",\n    allAccessGroups.includes(\"Owners\"), \"Owners\",\n    \"Admin\"\n  )\n)"
+   }
+  },
+  "Last edited by": {
+   "id": "%60_J%3F",
+   "name": "Last edited by",
+   "description": "",
+   "type": "last_edited_by",
+   "last_edited_by": {}
+  },
+  "Lifecycle": {
+   "id": "aEAc",
+   "name": "Lifecycle",
+   "description": "Currency and maintenance state for this reference.",
+   "type": "status",
+   "status": {
+    "options": [
+     {
+      "id": "yDef",
+      "name": "Draft",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "_\\Nn",
+      "name": "In review",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "EBIz",
+      "name": "Held",
+      "color": "red",
+      "description": null
+     },
+     {
+      "id": "rFtf",
+      "name": "Current",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "c=_h",
+      "name": "Superseded",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "UUSb",
+      "name": "Historical",
+      "color": "brown",
+      "description": null
+     }
+    ],
+    "groups": [
+     {
+      "id": "OjHR",
+      "name": "To-do",
+      "color": "default",
+      "option_ids": [
+       "yDef"
+      ]
+     },
+     {
+      "id": "OGdn",
+      "name": "In progress",
+      "color": "default",
+      "option_ids": [
+       "_\\Nn",
+       "EBIz"
+      ]
+     },
+     {
+      "id": "qdKZ",
+      "name": "Complete",
+      "color": "default",
+      "option_ids": [
+       "rFtf",
+       "c=_h",
+       "UUSb"
+      ]
+     }
+    ],
+    "default_option": null
+   }
+  },
+  "Review due": {
+   "id": "d%60jW",
+   "name": "Review due",
+   "description": "Date by which the reference requires a deliberate review.",
+   "type": "date",
+   "date": {}
+  },
+  "Database Group": {
+   "id": "eftd",
+   "name": "Database Group",
+   "description": "Functional group classification from Source Databases page",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "faVp",
+      "name": "Storage",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "en_r",
+      "name": "Activities",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "ya:v",
+      "name": "Knowledge",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "Jf=H",
+      "name": "Tagging",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": ":Lgu",
+      "name": "Build",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "QdYN",
+      "name": "AI",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "CMkO",
+      "name": "SV",
+      "color": "green",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Can View": {
+   "id": "g%3B%5Cx",
+   "name": "Can View",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Can Comment": {
+   "id": "jLit",
+   "name": "Can Comment",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Owner": {
+   "id": "pPNA",
+   "name": "Owner",
+   "description": "Named accountable owner for the reference.",
+   "type": "people",
+   "people": {}
+  },
+  "Home": {
+   "id": "qUz%5C",
+   "name": "Home",
+   "description": "",
+   "type": "button",
+   "button": {}
+  },
+  "Parent item": {
+   "id": "tMm%3E",
+   "name": "Parent item",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3f4afdfb-c3c7-80d4-a88d-fefb43cbe46c",
+    "data_source_id": "c7eafdfb-c3c7-8379-a4c1-873d7a352014",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Sub-item",
+     "synced_property_id": "xxn%3F"
+    }
+   }
+  },
+  "Sub-item": {
+   "id": "xxn%3F",
+   "name": "Sub-item",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3f4afdfb-c3c7-80d4-a88d-fefb43cbe46c",
+    "data_source_id": "c7eafdfb-c3c7-8379-a4c1-873d7a352014",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Parent item",
+     "synced_property_id": "tMm%3E"
+    }
+   }
+  },
+  "Skills served": {
+   "id": "yVh%3B",
+   "name": "Skills served",
+   "description": "Skills that may load or rely on this reference.",
+   "type": "relation",
+   "relation": {
+    "database_id": "3f4afdfb-c3c7-8063-bcf1-debcf16ac041",
+    "data_source_id": "e43afdfb-c3c7-839e-8082-071aad86b7de",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "References",
+     "synced_property_id": "LSvd"
+    }
+   }
+  },
+  "Name": {
+   "id": "title",
+   "name": "Name",
+   "description": null,
+   "type": "title",
+   "title": {}
+  }
+ },
+ "parent": {
+  "type": "block_id",
+  "block_id": "332afdfb-c3c7-80d7-9e17-c708b0136678"
+ },
+ "url": "https://app.notion.com/p/3f4afdfbc3c780d4a88dfefb43cbe46c",
+ "public_url": null,
+ "in_trash": false,
+ "archived": false,
+ "request_id": "26bd652a-feb3-44eb-8670-824ea3ec76ab"
+}

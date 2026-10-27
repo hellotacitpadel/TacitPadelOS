@@ -1,0 +1,349 @@
+{
+ "object": "database",
+ "id": "3dfafdfb-c3c7-80cc-b254-ede6c4cdec9a",
+ "cover": null,
+ "icon": {
+  "type": "icon",
+  "icon": {
+   "name": "calendar-month",
+   "color": "brown"
+  }
+ },
+ "created_time": "2026-09-18T05:49:00.000Z",
+ "created_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_by": {
+  "object": "user",
+  "id": "261d872b-594c-81b6-92f9-0002f670cc43"
+ },
+ "last_edited_time": "2026-09-28T02:36:00.000Z",
+ "title": [
+  {
+   "type": "text",
+   "text": {
+    "content": "TP: Schedules",
+    "link": null
+   },
+   "annotations": {
+    "bold": false,
+    "italic": false,
+    "strikethrough": false,
+    "underline": false,
+    "code": false,
+    "color": "default"
+   },
+   "plain_text": "TP: Schedules",
+   "href": null
+  }
+ ],
+ "description": [],
+ "is_inline": false,
+ "database_type": null,
+ "properties": {
+  "Date": {
+   "id": "CmUc",
+   "name": "Date",
+   "description": "Date derived from the start of Scheduled Window.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(\n  empty(prop(\"Scheduled Window\")),\n  empty(),\n  dateStart(prop(\"Scheduled Window\"))\n)"
+   }
+  },
+  "Record Type": {
+   "id": "GrH%3E",
+   "name": "Record Type",
+   "description": "Distinguishes permanent schedule parents from dated movement records.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "OTQb",
+      "name": "Schedule",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "x<Yq",
+      "name": "Movement",
+      "color": "purple",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Last edited time": {
+   "id": "HJ_%5E",
+   "name": "Last edited time",
+   "description": "",
+   "type": "last_edited_time",
+   "last_edited_time": {}
+  },
+  "Parent item": {
+   "id": "IO%3Ft",
+   "name": "Parent item",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3dfafdfb-c3c7-80cc-b254-ede6c4cdec9a",
+    "data_source_id": "602afdfb-c3c7-8352-920b-073de59ae59a",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Sub-item",
+     "synced_property_id": "%5DvIk"
+    }
+   }
+  },
+  "Can Edit": {
+   "id": "K%7BSD",
+   "name": "Can Edit",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Scheduled Duration": {
+   "id": "MtHT",
+   "name": "Scheduled Duration",
+   "description": "Scheduled movement duration in numeric hours.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(\n  empty(prop(\"Scheduled Window\")),\n  empty(),\n  round(\n    dateBetween(\n      dateEnd(prop(\"Scheduled Window\")),\n      dateStart(prop(\"Scheduled Window\")),\n      \"minutes\"\n    ) / 60,\n    2\n  )\n)"
+   }
+  },
+  "Created time": {
+   "id": "Ntd%5D",
+   "name": "Created time",
+   "description": "",
+   "type": "created_time",
+   "created_time": {}
+  },
+  "Created by": {
+   "id": "RfIY",
+   "name": "Created by",
+   "description": "",
+   "type": "created_by",
+   "created_by": {}
+  },
+  "Template [Self]": {
+   "id": "Tati",
+   "name": "Template [Self]",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3dfafdfb-c3c7-80cc-b254-ede6c4cdec9a",
+    "data_source_id": "602afdfb-c3c7-8352-920b-073de59ae59a",
+    "type": "single_property",
+    "single_property": {}
+   }
+  },
+  "Notes": {
+   "id": "W%3E%3Ac",
+   "name": "Notes",
+   "description": "Optional operational context or correction notes.",
+   "type": "rich_text",
+   "rich_text": {}
+  },
+  "Sub-item": {
+   "id": "%5DvIk",
+   "name": "Sub-item",
+   "description": null,
+   "type": "relation",
+   "relation": {
+    "database_id": "3dfafdfb-c3c7-80cc-b254-ede6c4cdec9a",
+    "data_source_id": "602afdfb-c3c7-8352-920b-073de59ae59a",
+    "type": "dual_property",
+    "dual_property": {
+     "synced_property_name": "Parent item",
+     "synced_property_id": "IO%3Ft"
+    }
+   }
+  },
+  "Min. Access": {
+   "id": "%60Kg%5E",
+   "name": "Min. Access",
+   "description": "Minimum access level inferred from Can Edit, Can Comment and Can View.",
+   "type": "formula",
+   "formula": {
+    "expression": "lets(\n  /* Combine all permission names */\n  allAccessGroups, concat(\n    prop(\"Can Edit\"),\n    prop(\"Can Comment\"),\n    prop(\"Can View\")\n  ).map(current.name()),\n  /* Return the broadest group present */\n  ifs(\n    allAccessGroups.includes(\"Team\"), \"Team\",\n    allAccessGroups.includes(\"Leadership\"), \"Leadership\",\n    allAccessGroups.includes(\"Owners\"), \"Owners\",\n    \"Admin\"\n  )\n)"
+   }
+  },
+  "Last edited by": {
+   "id": "%60_J%3F",
+   "name": "Last edited by",
+   "description": "",
+   "type": "last_edited_by",
+   "last_edited_by": {}
+  },
+  "Entry Type": {
+   "id": "beWA",
+   "name": "Entry Type",
+   "description": "Describes the work or availability represented by a movement.",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "OTQb",
+      "name": "Work",
+      "color": "green",
+      "description": null
+     },
+     {
+      "id": "x<Yq",
+      "name": "Annual Leave",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": ";GCd",
+      "name": "Other Leave",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": ":SZx",
+      "name": "Day Off",
+      "color": "yellow",
+      "description": null
+     },
+     {
+      "id": "JwBw",
+      "name": "Unavailable",
+      "color": "red",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Actual Window": {
+   "id": "dJwV",
+   "name": "Actual Window",
+   "description": "Actual start and finish of this movement.",
+   "type": "date",
+   "date": {}
+  },
+  "Scheduled Window": {
+   "id": "dbAY",
+   "name": "Scheduled Window",
+   "description": "Planned start and finish of this movement.",
+   "type": "date",
+   "date": {}
+  },
+  "Database Group": {
+   "id": "eftd",
+   "name": "Database Group",
+   "description": "Functional group classification from Source Databases page",
+   "type": "select",
+   "select": {
+    "options": [
+     {
+      "id": "faVp",
+      "name": "Storage",
+      "color": "orange",
+      "description": null
+     },
+     {
+      "id": "en_r",
+      "name": "Activities",
+      "color": "purple",
+      "description": null
+     },
+     {
+      "id": "ya:v",
+      "name": "Knowledge",
+      "color": "brown",
+      "description": null
+     },
+     {
+      "id": "Jf=H",
+      "name": "Tagging",
+      "color": "pink",
+      "description": null
+     },
+     {
+      "id": ":Lgu",
+      "name": "Build",
+      "color": "gray",
+      "description": null
+     },
+     {
+      "id": "QdYN",
+      "name": "AI",
+      "color": "blue",
+      "description": null
+     },
+     {
+      "id": "CMkO",
+      "name": "SV",
+      "color": "green",
+      "description": null
+     }
+    ]
+   }
+  },
+  "Can View": {
+   "id": "g%3B%5Cx",
+   "name": "Can View",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Can Comment": {
+   "id": "jLit",
+   "name": "Can Comment",
+   "description": "",
+   "type": "people",
+   "people": {}
+  },
+  "Home": {
+   "id": "qUz%5C",
+   "name": "Home",
+   "description": "",
+   "type": "button",
+   "button": {}
+  },
+  "Week": {
+   "id": "q%5BeR",
+   "name": "Week",
+   "description": "ISO-style year and week label derived from Scheduled Window.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(\n  empty(prop(\"Scheduled Window\")),\n  \"\",\n  lets(\n    /* Find the Monday belonging to this scheduled week. */\n    weekStart,\n    dateSubtract(\n      dateStart(prop(\"Scheduled Window\")),\n      day(dateStart(prop(\"Scheduled Window\"))) - 1,\n      \"days\"\n    ),\n    /* Thursday determines the correct year at New Year boundaries. */\n    isoYear,\n    year(dateAdd(weekStart, 3, \"days\")),\n    format(isoYear) + \" \u00b7 Week \" +\n    if(week(dateStart(prop(\"Scheduled Window\"))) < 10, \"0\", \"\") +\n    format(week(dateStart(prop(\"Scheduled Window\"))))\n  )\n)"
+   }
+  },
+  "Actual Duration": {
+   "id": "ydWH",
+   "name": "Actual Duration",
+   "description": "Actual movement duration in numeric hours.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(\n  empty(prop(\"Actual Window\")),\n  empty(),\n  round(\n    dateBetween(\n      dateEnd(prop(\"Actual Window\")),\n      dateStart(prop(\"Actual Window\")),\n      \"minutes\"\n    ) / 60,\n    2\n  )\n)"
+   }
+  },
+  "Schedule Variance": {
+   "id": "~j%5DU",
+   "name": "Schedule Variance",
+   "description": "Actual duration minus scheduled duration in numeric hours.",
+   "type": "formula",
+   "formula": {
+    "expression": "if(\n  empty(prop(\"Scheduled Window\")) or empty(prop(\"Actual Window\")),\n  empty(),\n  round(\n    (\n      dateBetween(\n        dateEnd(prop(\"Actual Window\")),\n        dateStart(prop(\"Actual Window\")),\n        \"minutes\"\n      ) -\n      dateBetween(\n        dateEnd(prop(\"Scheduled Window\")),\n        dateStart(prop(\"Scheduled Window\")),\n        \"minutes\"\n      )\n    ) / 60,\n    2\n  )\n)"
+   }
+  },
+  "Name": {
+   "id": "title",
+   "name": "Name",
+   "description": null,
+   "type": "title",
+   "title": {}
+  }
+ },
+ "parent": {
+  "type": "block_id",
+  "block_id": "261afdfb-c3c7-8189-8da1-d3847fdf0bf5"
+ },
+ "url": "https://app.notion.com/p/3dfafdfbc3c780ccb254ede6c4cdec9a",
+ "public_url": null,
+ "in_trash": false,
+ "archived": false,
+ "request_id": "c9d7c69e-0793-4f70-9b54-d479810c3b95"
+}
