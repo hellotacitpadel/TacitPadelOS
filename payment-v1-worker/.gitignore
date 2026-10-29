@@ -1,0 +1,5 @@
+node_modules/
+dist/
+workers.json
+
+node_modules
