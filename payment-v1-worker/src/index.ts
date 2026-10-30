@@ -1070,7 +1070,7 @@ worker.webhook("onPaymentV1SaleReady", {
 				const rawPriceList = await notion.pages.retrieve({ page_id: priceListIds[0] })
 				if (!("properties" in rawPriceList)) throw new Error("Published Price List could not be read.")
 				const priceList = rawPriceList as unknown as NotionPage
-				if (textValue(property(priceList, "Status")) !== "Active") throw new Error("Published Price List is not Active.")
+				if (textValue(property(priceList, "Status")) === "Proposed") throw new Error("Published Price List is still Proposed, not approved.")
 				const coachLevel = textValue(property(booking, "Coach Level"))
 				const capacity = numberValue(property(booking, "Capacity"))
 				const sourceField = product === "Clinic"
@@ -1102,7 +1102,7 @@ worker.webhook("onPaymentV1SaleReady", {
 					const cost = await notion.pages.create({
 						parent: { data_source_id: "261afdfb-c3c7-81d5-b4a7-000b0f69814f" },
 						properties: {
-							Sale: { title: [{ text: { content: `V1 Cost · ${textValue(property(booking, "Event"))}` } }] },
+							Sale: { title: [{ text: { content: `${textValue(property(booking, "Event"))} · Cost` } }] },
 							Events: { relation: [{ id: eventIds[0] }] },
 							Coaches: { relation: relationIds(property(booking, "Coaches")).map((id) => ({ id })) },
 							Organisations: { relation: relationIds(property(booking, "Organisations")).map((id) => ({ id })) },
@@ -1150,7 +1150,7 @@ worker.webhook("onPaymentV1SaleReady", {
 worker.tool("resolvePaymentV1Quote", {
 	title: "Resolve Payment V1 quote",
 	description:
-		"Read-only quote resolver for one Payment V1 Event. Re-reads the Event and its published active Price List, then returns the locked price inputs and blockers. It never creates or changes records.",
+		"Read-only quote resolver for one Payment V1 Event. Re-reads the Event and its published Price List (the period covering the lesson date — Previous periods are valid for historical bookings), then returns the locked price inputs and blockers. It never creates or changes records.",
 	hints: { readOnlyHint: true },
 	schema: j.object({
 		eventPageId: j.string().describe("The Notion page ID of the Event to quote."),
@@ -1212,8 +1212,8 @@ worker.tool("resolvePaymentV1Quote", {
 				const priceList = rawList as unknown as NotionPage
 				priceListName = textValue(property(priceList, "Price Period"))
 				priceListStatus = textValue(property(priceList, "Status"))
-				if (priceListStatus !== "Active") {
-					blockers.push("Published Price List is not Active.")
+				if (priceListStatus === "Proposed") {
+					blockers.push("Published Price List is still Proposed, not approved.")
 				}
 				sourceField = priceFieldFor(product, input.coachLevel, input.studentCount)
 				if (product === "Clinic" && input.plannedCapacity !== null) {
@@ -1380,8 +1380,8 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 				blockers.push("Published Price List could not be read.")
 			} else {
 				activePriceList = rawList as unknown as NotionPage
-				if (textValue(property(activePriceList, "Status")) !== "Active") {
-					blockers.push("Published Price List is not Active.")
+				if (textValue(property(activePriceList, "Status")) === "Proposed") {
+					blockers.push("Published Price List is still Proposed, not approved.")
 				}
 			}
 		}
@@ -1467,14 +1467,19 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 		const ensureLedger = async (revenueSaleId: string) => {
 			const existingLedgerId = await findBalanceSheetIdForSale(notion, revenueSaleId)
 			if (existingLedgerId) return { ledgerId: existingLedgerId, created: false }
+			const revenueSale = (await notion.pages.retrieve({ page_id: revenueSaleId })) as unknown as NotionPage
+			const saleUniqueId = property(revenueSale, "ID")?.unique_id as { prefix?: string; number?: number } | undefined
+			const saleSku = saleUniqueId?.prefix && saleUniqueId.number != null ? `${saleUniqueId.prefix}-${String(saleUniqueId.number).padStart(6, "0")}` : ""
+			const saleTitle = textValue(property(revenueSale, "Sale"))
 			const ledger = await notion.pages.create({
 				parent: { data_source_id: balanceSheetDataSourceId },
+				icon: { type: "icon", icon: { name: "upward", color: "green" } } as never,
 				properties: {
 					Item: {
 						title: [
 							{
 								text: {
-									content: `V1 Ledger · ${eventTitle} · ${input.operationKey}`,
+									content: `${saleSku ? `${saleSku} · ` : ""}${saleTitle || `${eventTitle} · ${input.operationKey}`}`,
 								},
 							},
 						],
@@ -1547,7 +1552,7 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 				parent: { data_source_id: "261afdfb-c3c7-81d5-b4a7-000b0f69814f" },
 				properties: {
 					...commonProperties,
-					Sale: { title: [{ text: { content: `V1 Cost · ${eventTitle}` } }] },
+					Sale: { title: [{ text: { content: `${eventTitle} · Cost` } }] },
 					"Sale Role": { select: { name: "Cost" } },
 					"Payment Channel": { select: { name: "Cost" } },
 					"Paid To": { select: { name: "N/A (Cost Sale)" } },
@@ -1565,7 +1570,7 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 					title: [
 						{
 							text: {
-								content: `V1 ${product} · ${eventTitle} · ${input.operationKey}`,
+								content: `${eventTitle} · ${input.operationKey}`,
 							},
 						},
 					],
@@ -1621,7 +1626,7 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 worker.tool("applyPaymentV1VerifiedSale", {
 	title: "Apply verified Payment V1 sale",
 	description:
-		"Controlled, zero-discount Payment V1 accounting step. Re-reads and validates the Event and Active Price List, idempotently creates or reuses the permitted V1 Revenue Sale and its one linked Balance Sheet ledger row. At exact paid capacity it confirms the Event. Compensation is deliberately outside this route. It never creates an Hourly Rate.",
+		"Controlled, zero-discount Payment V1 accounting step. Re-reads and validates the Event and its published Price List (the period covering the lesson date), idempotently creates or reuses the permitted V1 Revenue Sale and its one linked Balance Sheet ledger row. At exact paid capacity it confirms the Event. Compensation is deliberately outside this route. It never creates an Hourly Rate.",
 	schema: j.object({
 		operationKey: j.string().describe("Stable operator-confirmed idempotency key for this payment."),
 		eventPageId: j.string().describe("The Payment V1 Event page ID."),
@@ -2807,7 +2812,6 @@ type PlayerAcademyPurchaseInput = {
 	operationKey: string
 	studentPageId: string
 	coachLevel: "Head Coach" | "Senior Coach" | "Coach" | "Instructor"
-	playerAcademyTier: "Starter" | "Basic" | "Standard" | "Premium" | "Pro"
 	clubPageId: string
 	courtRentalIdr: number
 	processingType: "Payment" | "Promo"
@@ -2900,10 +2904,11 @@ const applyPlayerAcademyPurchase = async (
 		})
 	}
 	const academyFeesIdr = await resolveAcademyFees(notion, activePriceListId)
-	const finalChargedPrice = round((academyFeesIdr + input.courtRentalIdr) * (1 - discountPercent))
+	const discountAmountIdr = round(academyFeesIdr * discountPercent)
+	const finalChargedPrice = academyFeesIdr - discountAmountIdr + input.courtRentalIdr
 
 	// 4. Create the Sale without an Event
-	const saleTitle = `V1 Player Academy · ${input.playerAcademyTier} · ${input.coachLevel} · ${input.operationKey}`
+	const saleTitle = `V1 Player Academy · ${input.coachLevel} · ${input.operationKey}`
 	const relations = (ids: string[]) => ids.map((id) => ({ id }))
 	const sale = await notion.pages.create({
 		parent: { data_source_id: salesDataSourceId },
@@ -2917,7 +2922,6 @@ const applyPlayerAcademyPurchase = async (
 			"Financial Route": { select: { name: "Payment V1" } },
 			"Price List": { relation: [{ id: activePriceListId }] },
 			"Revenue Scope": { select: { name: "Academy Fees" } },
-			"Player Academy Tier": { select: { name: input.playerAcademyTier } },
 			"Resolved Coaching Rate (IDR)": { number: academyFeesIdr },
 			"Final Charged Price (IDR)": { number: finalChargedPrice },
 			"Court Hourly Rate (IDR)": { number: input.courtRentalIdr },
@@ -2951,11 +2955,14 @@ const applyPlayerAcademyPurchase = async (
 	}
 
 	// 6. Create Balance Sheet ledger row
+	const academySaleUniqueId = property(sale as unknown as NotionPage, "ID")?.unique_id as { prefix?: string; number?: number } | undefined
+	const academySaleSku = academySaleUniqueId?.prefix && academySaleUniqueId.number != null ? `${academySaleUniqueId.prefix}-${String(academySaleUniqueId.number).padStart(6, "0")}` : ""
 	const ledger = await notion.pages.create({
 		parent: { data_source_id: balanceSheetDataSourceId },
+		icon: { type: "icon", icon: { name: "upward", color: "green" } } as never,
 		properties: {
 			Item: {
-				title: [{ text: { content: `V1 Ledger · Player Academy · ${input.operationKey}` } }],
+				title: [{ text: { content: `${academySaleSku ? `${academySaleSku} · ` : ""}${saleTitle} · ${input.operationKey}` } }],
 			},
 			Sales: { relation: [{ id: sale.id }] },
 			"Record Type": { select: { name: "Transaction" } },
@@ -2987,7 +2994,7 @@ const applyPlayerAcademyPurchase = async (
 		courtRentalIdr: input.courtRentalIdr,
 		subtotalIdr: academyFeesIdr + input.courtRentalIdr,
 		discountPercent,
-		discountAmountIdr: round((academyFeesIdr + input.courtRentalIdr) * discountPercent),
+		discountAmountIdr: round(academyFeesIdr * discountPercent),
 		netAmountDueIdr: finalChargedPrice,
 		created: ["Revenue Sale (no Event)", "Balance Sheet ledger"],
 		blockers: [],
@@ -3005,7 +3012,6 @@ worker.tool("applyPlayerAcademyPurchase", {
 		operationKey: j.string().describe("Unique operation key for idempotency."),
 		studentPageId: j.string().describe("TP: People page ID of the student."),
 		coachLevel: j.enum("Head Coach", "Senior Coach", "Coach", "Instructor").describe("Coach level for title only."),
-		playerAcademyTier: j.enum("Starter", "Basic", "Standard", "Premium", "Pro").describe("Player Academy tier."),
 		clubPageId: j.string().describe("TP: Organisations page ID of the club."),
 		courtRentalIdr: j.number().describe("Court rental amount in full IDR (operator-provided)."),
 		processingType: j.enum("Payment", "Promo").describe("Processing type."),
@@ -3030,7 +3036,6 @@ worker.tool("previewPlayerAcademyPurchase", {
 	hints: { readOnlyHint: true },
 	schema: j.object({
 		studentPageId: j.string().describe("TP: People page ID of the student."),
-		playerAcademyTier: j.enum("Starter", "Basic", "Standard", "Premium", "Pro").describe("Player Academy tier."),
 		courtRentalIdr: j.number().describe("Court rental amount in full IDR (operator-provided)."),
 		joinedTacitTribe: j.string().nullable().describe("Date the student joined Tacit Tribe (ISO format), or null if not a member."),
 	}),
@@ -3070,12 +3075,11 @@ worker.tool("previewPlayerAcademyPurchase", {
 			}
 		}
 		const subtotalIdr = academyFeesIdr + input.courtRentalIdr
-		const discountAmountIdr = round(subtotalIdr * discountPercent)
+		const discountAmountIdr = round(academyFeesIdr * discountPercent)
 		const netAmountDueIdr = subtotalIdr - discountAmountIdr
 		return jsonOutput({
 			mode: "read-only",
 			studentPageId: input.studentPageId,
-			playerAcademyTier: input.playerAcademyTier,
 			courtRentalIdr: input.courtRentalIdr,
 			academyFeesIdr,
 			subtotalIdr,
@@ -3196,8 +3200,6 @@ worker.webhook("onPlayerAcademySaleReady", {
 				if (studentIds.length !== 1 || orgIds.length !== 1) {
 					throw new Error("Player Academy draft requires exactly one Student and one Organisation.")
 				}
-				const tier = textValue(property(sale, "Player Academy Tier"))
-				if (!tier) throw new Error("Player Academy draft requires a Player Academy Tier.")
 				const courtRentalIdr = numberValue(property(sale, "Court Hourly Rate (IDR)"))
 				if (courtRentalIdr === null || courtRentalIdr < 0) {
 					throw new Error("Player Academy draft requires a Court Hourly Rate (IDR).")
@@ -3248,7 +3250,8 @@ worker.webhook("onPlayerAcademySaleReady", {
 				const activePriceListId = await findActivePriceListId(notion)
 				if (!activePriceListId) throw new Error("No Active pricing period found.")
 				const academyFeesIdr = await resolveAcademyFees(notion, activePriceListId)
-				const finalChargedPrice = round((academyFeesIdr + courtRentalIdr) * (1 - discountPercent))
+				const discountAmountIdr = round(academyFeesIdr * discountPercent)
+				const finalChargedPrice = academyFeesIdr - discountAmountIdr + courtRentalIdr
 
 				// Write computed values back onto the draft Sale
 				await notion.pages.update({
@@ -3280,10 +3283,13 @@ worker.webhook("onPlayerAcademySaleReady", {
 				}
 
 				// Balance Sheet ledger
+				const applySaleUniqueId = property(sale as unknown as NotionPage, "ID")?.unique_id as { prefix?: string; number?: number } | undefined
+				const applySaleSku = applySaleUniqueId?.prefix && applySaleUniqueId.number != null ? `${applySaleUniqueId.prefix}-${String(applySaleUniqueId.number).padStart(6, "0")}` : ""
 				const ledger = await notion.pages.create({
 					parent: { data_source_id: balanceSheetDataSourceId },
+					icon: { type: "icon", icon: { name: "upward", color: "green" } } as never,
 					properties: {
-						Item: { title: [{ text: { content: `V1 Ledger · Player Academy · ${salePageId.slice(0, 8)}` } }] },
+						Item: { title: [{ text: { content: `${applySaleSku ? `${applySaleSku} · ` : ""}${textValue(property(sale, "Sale")) || `Player Academy · ${salePageId.slice(0, 8)}`} · ${String(event.body?.operationKey ?? salePageId.slice(0, 8))}` } }] },
 						Sales: { relation: [{ id: salePageId }] },
 						"Record Type": { select: { name: "Transaction" } },
 						"In/Out": { select: { name: "Incoming" } },
@@ -3312,4 +3318,548 @@ worker.webhook("onPlayerAcademySaleReady", {
 			}
 		}
 	},
+})
+
+// ============================================================================
+// Player Academy Mode 2 — Deterministic invoice creation
+// ============================================================================
+
+const invoicesDataSourceId = "5bffe449-e1fc-4b94-8f37-703b35e5213c"
+
+const fmtIdr = (n: number): string => "Rp" + n.toLocaleString("en-US")
+const fmtNegIdr = (n: number): string => "\u2212Rp" + n.toLocaleString("en-US")
+
+worker.tool("createPlayerAcademyInvoice", {
+	title: "Create Player Academy invoice (Mode 2)",
+	description:
+		"Deterministic invoice creation for a Player Academy draft Sale. Reads the Sale's confirmed amounts, computes the itemised breakdown, creates a TP: Invoices page with exact content blocks (heading, amounts table, bank details, footer). Does not render PDF — Ivy attaches the PDF afterwards from the exact content written here.",
+	schema: j.object({
+		salePageId: j.string().describe("TP: Sales page ID of the draft Player Academy Sale."),
+		clubPageId: j.string().nullable().describe("TP: Organisations page ID — fallback if Organisations relation is empty on the Sale."),
+		clubName: j.string().nullable().describe("Club display name — fallback if org page ID is not available."),
+	}),
+	execute: async (input, { notion }) => {
+		const blockers: string[] = []
+
+		// 1. Read the Sale
+		const rawSale = await notion.pages.retrieve({ page_id: input.salePageId })
+		if (!("properties" in rawSale)) throw new Error("Sale could not be read.")
+		const sale = rawSale as unknown as NotionPage
+
+		if (textValue(property(sale, "Sale Type")) !== "Player Academy") {
+			blockers.push("Sale is not a Player Academy Sale.")
+		}
+		if (relationIds(property(sale, "Events")).length > 0) {
+			blockers.push("Sale has a linked Event — use Mode 1, not Mode 2.")
+		}
+
+		const studentIds = relationIds(property(sale, "Students"))
+		if (studentIds.length !== 1) {
+			blockers.push("Player Academy draft requires exactly one Student.")
+		}
+
+		const academyFeesIdr = numberValue(property(sale, "Resolved Coaching Rate (IDR)"))
+		const courtRentalIdr = numberValue(property(sale, "Court Hourly Rate (IDR)"))
+		const discountPercent = numberValue(property(sale, "Shared Discount %")) ?? 0
+
+		if (academyFeesIdr === null) blockers.push("Sale missing Resolved Coaching Rate (IDR).")
+		if (courtRentalIdr === null) blockers.push("Sale missing Court Hourly Rate (IDR).")
+
+		if (blockers.length) {
+			return jsonOutput({ mode: "blocked-no-write", blockers, invoicePageId: null })
+		}
+
+		// 2. Get student name
+		const rawStudent = await notion.pages.retrieve({ page_id: studentIds[0] })
+		const studentName = textValue(property(rawStudent as unknown as NotionPage, "Name")) || "Student"
+
+		// 3. Get club name — try Sale relation, then input fallbacks
+		let clubName = input.clubName ?? ""
+		const orgIds = relationIds(property(sale, "Organisations"))
+		if (!clubName && orgIds.length > 0) {
+			const rawOrg = await notion.pages.retrieve({ page_id: orgIds[0] })
+			clubName = textValue(property(rawOrg as unknown as NotionPage, "Name")) || ""
+		}
+		if (!clubName && input.clubPageId) {
+			const rawOrg = await notion.pages.retrieve({ page_id: input.clubPageId })
+			clubName = textValue(property(rawOrg as unknown as NotionPage, "Name")) || ""
+		}
+		if (!clubName) {
+			blockers.push("Club name could not be resolved from Sale or input.")
+			return jsonOutput({ mode: "blocked-no-write", blockers, invoicePageId: null })
+		}
+
+		// 4. Check for duplicate invoice
+		const existing = await notion.dataSources.query({
+			data_source_id: invoicesDataSourceId,
+			filter: { property: "Sales", relation: { contains: input.salePageId } },
+			page_size: 5,
+		})
+		if (existing.results.length > 0) {
+			return jsonOutput({
+				mode: "blocked-duplicate",
+				blockers: ["An invoice already exists for this Sale. Delete or archive it first, or use regenerate mode."],
+				existingInvoicePageId: existing.results[0].id,
+				invoicePageId: null,
+			})
+		}
+
+		// 5. Compute amounts (discount on Academy Fees only)
+		const academyPrice = academyFeesIdr!
+		const discountAmount = round(academyPrice * discountPercent)
+		const subtotal = academyPrice - discountAmount
+		const courtFee = courtRentalIdr!
+		const netAmountDue = subtotal + courtFee
+		const discountPct = Math.round(discountPercent * 100)
+
+		// 6. Create invoice page with temporary title
+		const today = new Date().toISOString().slice(0, 10)
+		const dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+
+		const invoice = await notion.pages.create({
+			parent: { data_source_id: invoicesDataSourceId },
+			properties: {
+				Invoice: { title: [{ text: { content: `INV-TP-_${studentName}` } }] },
+				Sales: { relation: [{ id: input.salePageId }] },
+				"Invoice Date": { date: { start: today } },
+				"Due Date": { date: { start: dueDate } },
+				Status: { status: { name: "Draft" } },
+			} as never,
+		})
+
+		// 7. Read back INV # and update title
+		const created = await notion.pages.retrieve({ page_id: invoice.id })
+		const invProp = property(created as unknown as NotionPage, "INV #")
+		const invNumber = (invProp?.unique_id as { number?: number } | undefined)?.number ?? 0
+		const invTitle = `INV-TP-${invNumber}_${studentName}`
+
+		await notion.pages.update({
+			page_id: invoice.id,
+			properties: {
+				Invoice: { title: [{ text: { content: invTitle } }] },
+			} as never,
+		})
+
+		// 8. Write content blocks — deterministic, exact format
+		const cellText = (s: string) => [{ type: "text" as const, text: { content: s } }]
+		const headingBlock = (text: string) => ({
+			object: "block" as const,
+			type: "heading_2" as const,
+			heading_2: { rich_text: [{ type: "text" as const, text: { content: text } }] },
+		})
+		const paraBlock = (text: string) => ({
+			object: "block" as const,
+			type: "paragraph" as const,
+			paragraph: { rich_text: [{ type: "text" as const, text: { content: text } }] },
+		})
+		const bulletBlock = (text: string) => ({
+			object: "block" as const,
+			type: "bulleted_list_item" as const,
+			bulleted_list_item: { rich_text: [{ type: "text" as const, text: { content: text } }] },
+		})
+
+		await notion.blocks.children.append({
+			block_id: invoice.id,
+			children: [
+				headingBlock("Invoice details"),
+				paraBlock(`Invoice number: INV-TP-${invNumber}`),
+				paraBlock(`Bill to: ${studentName}`),
+				paraBlock(`Product: ${studentName} \u2014 Player Academy \u2014 ${clubName}`),
+				paraBlock(`Invoice date: ${today}`),
+				paraBlock(`Due date: ${dueDate} \u2014 7-day terms`),
+				{
+					object: "block",
+					type: "table",
+					table: {
+						table_width: 2,
+						has_column_header: true,
+						has_row_header: false,
+						children: [
+							{ table_row: { cells: [cellText("Description"), cellText("Amount (Rp.)")] } },
+							{ table_row: { cells: [cellText("Academy Price"), cellText(fmtIdr(academyPrice))] } },
+							{ table_row: { cells: [cellText(`Tacit Original (${discountPct}%)`), cellText(fmtNegIdr(discountAmount))] } },
+							{ table_row: { cells: [cellText("Subtotal"), cellText(fmtIdr(subtotal))] } },
+							{ table_row: { cells: [cellText("Court Fee"), cellText(fmtIdr(courtFee))] } },
+							{ table_row: { cells: [cellText("Net Amount Due"), cellText(fmtIdr(netAmountDue))] } },
+						],
+					},
+				},
+				headingBlock("Payment instructions"),
+				paraBlock(`Please use INV-TP-${invNumber} as your payment reference.`),
+				paraBlock("Please don\u2019t hesitate to reach out with any questions."),
+				paraBlock("Thank you for choosing Tacit Padel."),
+				bulletBlock("Bank: OCBC"),
+				bulletBlock("Account number: 020800031179"),
+				bulletBlock("Account holder: PT. TACIT PADEL INDONESIA"),
+				bulletBlock("SWIFT/BIC: NISPIDJA"),
+				headingBlock("Issued by"),
+				paraBlock("Tacit Padel"),
+				paraBlock("Plaza Sovereign, 8th Floor. Jl. TB Simatupang Kav. 36, RT.1 / RW.2 Cilandak, Jakarta Selatan, 12430 Indonesia."),
+				paraBlock("hola@tacitpadel.com \u00b7 +62 (0)8528612 4149"),
+				{ object: "block", type: "divider", divider: {} },
+				paraBlock("www.tacitpadel.com"),
+			],
+		})
+
+		// 9. Return summary for Ivy to render PDF
+		return jsonOutput({
+			mode: "created",
+			invoicePageId: invoice.id,
+			invoiceTitle: invTitle,
+			invoiceNumber: invNumber,
+			studentName,
+			clubName,
+			invoiceDate: today,
+			dueDate,
+			amounts: {
+				academyPrice,
+				discountPercent,
+				discountAmount,
+				subtotal,
+				courtFee,
+				netAmountDue,
+			},
+			contentBlocksWritten: true,
+			pdfRequired: true,
+			note: "Invoice page created with deterministic content. Ivy should now render the PDF from this exact content and attach it to the invoice page.",
+		})
+	},
+})
+
+worker.tool("regeneratePlayerAcademyInvoice", {
+	title: "Regenerate Player Academy invoice (Mode 2)",
+	description:
+		"Replaces all content blocks on an existing Player Academy invoice page with fresh deterministic content from the linked Sale. Archives old blocks first, then rebuilds. Use when the Sale amounts changed or the format was updated.",
+	schema: j.object({
+		invoicePageId: j.string().describe("TP: Invoices page ID to regenerate."),
+	}),
+	execute: async (input, { notion }) => {
+		// 1. Read the invoice page
+		const rawInvoice = await notion.pages.retrieve({ page_id: input.invoicePageId })
+		if (!("properties" in rawInvoice)) throw new Error("Invoice could not be read.")
+		const invoicePage = rawInvoice as unknown as NotionPage
+
+		// 2. Get the linked Sale
+		const saleIds = relationIds(property(invoicePage, "Sales"))
+		if (saleIds.length === 0) {
+			return jsonOutput({ mode: "blocked-no-write", blockers: ["Invoice has no linked Sale."], invoicePageId: input.invoicePageId })
+		}
+		const salePageId = saleIds[0]
+
+		// 3. Read the Sale
+		const rawSale = await notion.pages.retrieve({ page_id: salePageId })
+		const sale = rawSale as unknown as NotionPage
+
+		if (textValue(property(sale, "Sale Type")) !== "Player Academy") {
+			return jsonOutput({ mode: "blocked-no-write", blockers: ["Linked Sale is not a Player Academy Sale."], invoicePageId: input.invoicePageId })
+		}
+
+		const studentIds = relationIds(property(sale, "Students"))
+		if (studentIds.length !== 1) {
+			return jsonOutput({ mode: "blocked-no-write", blockers: ["Sale requires exactly one Student."], invoicePageId: input.invoicePageId })
+		}
+
+		const academyFeesIdr = numberValue(property(sale, "Resolved Coaching Rate (IDR)"))
+		const courtRentalIdr = numberValue(property(sale, "Court Hourly Rate (IDR)"))
+		const discountPercent = numberValue(property(sale, "Shared Discount %")) ?? 0
+
+		if (academyFeesIdr === null || courtRentalIdr === null) {
+			return jsonOutput({ mode: "blocked-no-write", blockers: ["Sale missing required amount fields."], invoicePageId: input.invoicePageId })
+		}
+
+		// 4. Get student + club names
+		const rawStudent = await notion.pages.retrieve({ page_id: studentIds[0] })
+		const studentName = textValue(property(rawStudent as unknown as NotionPage, "Name")) || "Student"
+
+		let clubName = ""
+		const orgIds = relationIds(property(sale, "Organisations"))
+		if (orgIds.length > 0) {
+			const rawOrg = await notion.pages.retrieve({ page_id: orgIds[0] })
+			clubName = textValue(property(rawOrg as unknown as NotionPage, "Name")) || ""
+		}
+		if (!clubName) {
+			// Try to extract from Sale title
+			const saleTitle = textValue(property(sale, "Sale"))
+			const parts = saleTitle.split("\u2014").map((s) => s.trim())
+			if (parts.length >= 3) clubName = parts[parts.length - 1]
+		}
+
+		// 5. Archive all existing content blocks
+		const existingBlocks = await notion.blocks.children.list({ block_id: input.invoicePageId, page_size: 100 })
+		for (const b of existingBlocks.results) {
+			await notion.blocks.delete({ block_id: b.id }).catch(() => undefined)
+		}
+
+		// 6. Compute amounts
+		const academyPrice = academyFeesIdr!
+		const discountAmount = round(academyPrice * discountPercent)
+		const subtotal = academyPrice - discountAmount
+		const courtFee = courtRentalIdr!
+		const netAmountDue = subtotal + courtFee
+		const discountPct = Math.round(discountPercent * 100)
+
+		// 7. Read INV #
+		const invProp = property(invoicePage, "INV #")
+		const invNumber = (invProp?.unique_id as { number?: number } | undefined)?.number ?? 0
+		const invTitle = `INV-TP-${invNumber}_${studentName}`
+
+		// Update title
+		await notion.pages.update({
+			page_id: input.invoicePageId,
+			properties: { Invoice: { title: [{ text: { content: invTitle } }] } } as never,
+		})
+
+		// 8. Write fresh content blocks
+		const cellText = (s: string) => [{ type: "text" as const, text: { content: s } }]
+		const headingBlock = (text: string) => ({
+			object: "block" as const, type: "heading_2" as const,
+			heading_2: { rich_text: [{ type: "text" as const, text: { content: text } }] },
+		})
+		const paraBlock = (text: string) => ({
+			object: "block" as const, type: "paragraph" as const,
+			paragraph: { rich_text: [{ type: "text" as const, text: { content: text } }] },
+		})
+		const bulletBlock = (text: string) => ({
+			object: "block" as const, type: "bulleted_list_item" as const,
+			bulleted_list_item: { rich_text: [{ type: "text" as const, text: { content: text } }] },
+		})
+
+		const today = textValue(property(invoicePage, "Invoice Date")) || new Date().toISOString().slice(0, 10)
+		const dueDate = textValue(property(invoicePage, "Due Date")) || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+
+		await notion.blocks.children.append({
+			block_id: input.invoicePageId,
+			children: [
+				headingBlock("Invoice details"),
+				paraBlock(`Invoice number: INV-TP-${invNumber}`),
+				paraBlock(`Bill to: ${studentName}`),
+				paraBlock(`Product: ${studentName} \u2014 Player Academy \u2014 ${clubName}`),
+				paraBlock(`Invoice date: ${today}`),
+				paraBlock(`Due date: ${dueDate} \u2014 7-day terms`),
+				{
+					object: "block",
+					type: "table",
+					table: {
+						table_width: 2,
+						has_column_header: true,
+						has_row_header: false,
+						children: [
+							{ table_row: { cells: [cellText("Description"), cellText("Amount (Rp.)")] } },
+							{ table_row: { cells: [cellText("Academy Price"), cellText(fmtIdr(academyPrice))] } },
+							{ table_row: { cells: [cellText(`Tacit Original (${discountPct}%)`), cellText(fmtNegIdr(discountAmount))] } },
+							{ table_row: { cells: [cellText("Subtotal"), cellText(fmtIdr(subtotal))] } },
+							{ table_row: { cells: [cellText("Court Fee"), cellText(fmtIdr(courtFee))] } },
+							{ table_row: { cells: [cellText("Net Amount Due"), cellText(fmtIdr(netAmountDue))] } },
+						],
+					},
+				},
+				headingBlock("Payment instructions"),
+				paraBlock(`Please use INV-TP-${invNumber} as your payment reference.`),
+				paraBlock("Please don\u2019t hesitate to reach out with any questions."),
+				paraBlock("Thank you for choosing Tacit Padel."),
+				bulletBlock("Bank: OCBC"),
+				bulletBlock("Account number: 020800031179"),
+				bulletBlock("Account holder: PT. TACIT PADEL INDONESIA"),
+				bulletBlock("SWIFT/BIC: NISPIDJA"),
+				headingBlock("Issued by"),
+				paraBlock("Tacit Padel"),
+				paraBlock("Plaza Sovereign, 8th Floor. Jl. TB Simatupang Kav. 36, RT.1 / RW.2 Cilandak, Jakarta Selatan, 12430 Indonesia."),
+				paraBlock("hola@tacitpadel.com \u00b7 +62 (0)8528612 4149"),
+				{ object: "block", type: "divider", divider: {} },
+				paraBlock("www.tacitpadel.com"),
+			],
+		})
+
+		return jsonOutput({
+			mode: "regenerated",
+			invoicePageId: input.invoicePageId,
+			invoiceTitle: invTitle,
+			invoiceNumber: invNumber,
+			studentName,
+			clubName,
+			amounts: { academyPrice, discountPercent, discountAmount, subtotal, courtFee, netAmountDue },
+			contentBlocksWritten: true,
+			pdfRequired: true,
+			note: "Invoice content replaced with deterministic content. Ivy should now re-render the PDF from this exact content.",
+		})
+	},
+})
+
+// ─── Sybil generic record correction (discount / product / venue / org) ───
+
+const SYBIL_FIELD_SPEC: Record<string, Record<string, string>> = {
+	sale: {
+		"Shared Discount %": "number",
+		"Tacit Discount %": "number",
+		"Final Charged Price (IDR)": "number",
+		"Resolved Coaching Rate (IDR)": "number",
+		"Court Hourly Rate (IDR)": "number",
+		"Discount Reason": "multi_select",
+		"Discount Explanation": "text",
+		"Organisation": "relation",
+		"Sale Type": "select",
+		"Product": "select"
+	},
+	event: {
+		"Organisation": "relation",
+		"Club": "relation",
+		"Location": "relation",
+		"Scheduled": "date"
+	},
+	balanceSheet: {
+		"Balance Sheet": "title"
+	}
+}
+
+const sybilPropRead = (value: unknown, kind: string): unknown => {
+	const p = value as Record<string, unknown> | undefined
+	if (!p) return null
+	if (kind === "number") return p.number ?? null
+	if (kind === "select") return (p.select as { name?: string } | null)?.name ?? null
+	if (kind === "multi_select") return ((p.multi_select as { name?: string }[]) ?? []).map(o => o.name).sort()
+	if (kind === "relation") return ((p.relation as { id?: string }[]) ?? []).map(o => o.id).sort()
+	if (kind === "text") return ((p.rich_text as { plain_text?: string }[]) ?? []).map(t => t.plain_text).join("")
+	if (kind === "title") return ((p.title as { plain_text?: string }[]) ?? []).map(t => t.plain_text).join("")
+	if (kind === "date") return (p.date as { start?: string } | null)?.start ?? null
+	return null
+}
+
+const sybilPropWrite = (value: unknown, kind: string): unknown => {
+	if (kind === "number") return { number: value }
+	if (kind === "select") return { select: { name: value } }
+	if (kind === "multi_select") return { multi_select: (value as string[]).map(name => ({ name })) }
+	if (kind === "relation") return { relation: (value as string[]).map(id => ({ id })) }
+	if (kind === "text") return { rich_text: value ? [{ text: { content: value as string } }] : [] }
+	if (kind === "title") return { title: [{ text: { content: value as string } }] }
+	if (kind === "date") return { date: { start: value } }
+	return null
+}
+
+const sybilNormalize = (value: unknown, kind: string): unknown => {
+	if (kind === "multi_select" || kind === "relation") return [...(value as string[])].sort()
+	return value
+}
+
+const sybilRecordSnapshot = async (notion: Client, eventPageId: string, salePageId: string, balanceSheetPageId: string, changes: Record<string, Record<string, unknown>>) => {
+	const ids: Record<string, string> = { event: eventPageId, sale: salePageId, balanceSheet: balanceSheetPageId }
+	const out: Record<string, Record<string, unknown>> = {}
+	for (const rec of Object.keys(ids) as ("event" | "sale" | "balanceSheet")[]) {
+		const page = await notion.pages.retrieve({ page_id: ids[rec] }).catch(() => null)
+		if (!page) return { snapshot: null as never, missing: rec }
+		const props = (page as { properties?: Record<string, unknown> }).properties ?? {}
+		out[rec] = {}
+		for (const name of Object.keys(changes[rec] ?? {})) {
+			const kind = SYBIL_FIELD_SPEC[rec]?.[name]
+			if (kind) out[rec][name] = sybilPropRead(props[name], kind)
+		}
+	}
+	const fingerprint = crypto.createHash("sha256").update(JSON.stringify(out)).digest("hex")
+	return { snapshot: { values: out, fingerprint }, missing: null as never }
+}
+
+worker.tool("previewSybilRecordCorrection", {
+	title: "Preview Sybil record correction",
+	description: "Read-only preview of a discount/product/venue/org correction on the existing Event/Sale/Balance Sheet chain.",
+	schema: j.object({
+		eventPageId: j.string(),
+		salePageId: j.string(),
+		balanceSheetPageId: j.string(),
+		changesJson: j.string(),
+		reason: j.string()
+	}),
+	execute: async (input, { notion }) => {
+		const parsed = JSON.parse(input.changesJson) as Record<string, Record<string, unknown>>
+		const changes = { event: parsed.event ?? {}, sale: parsed.sale ?? {}, balanceSheet: parsed.balanceSheet ?? {} }
+		const blockers: string[] = []
+		for (const rec of Object.keys(changes) as ("event" | "sale" | "balanceSheet")[]) {
+			for (const name of Object.keys(changes[rec])) {
+				if (!SYBIL_FIELD_SPEC[rec][name]) blockers.push(`Field not allowed on ${rec}: ${name}`)
+			}
+		}
+		if (!Object.values(changes).some(c => Object.keys(c).length)) blockers.push("No changes proposed.")
+		const c = await sybilRecordSnapshot(notion, input.eventPageId, input.salePageId, input.balanceSheetPageId, changes)
+		if (!c.snapshot) blockers.push(`Could not read ${c.missing}.`)
+		const diff: Record<string, Record<string, { before: unknown; after: unknown }>> = {}
+		if (c.snapshot) {
+			for (const rec of Object.keys(changes) as ("event" | "sale" | "balanceSheet")[]) {
+				for (const [name, value] of Object.entries(changes[rec])) {
+					const kind = SYBIL_FIELD_SPEC[rec][name]
+					if (!kind) continue
+					const before = c.snapshot.values[rec][name]
+					const after = sybilNormalize(value, kind)
+					if (JSON.stringify(before) === JSON.stringify(after)) blockers.push(`${rec}.${name} already matches proposal.`)
+					else (diff[rec] ??= {})[name] = { before, after }
+				}
+			}
+		}
+		return jsonOutput({
+			mode: blockers.length ? "blocked-no-write" : "preview-ready",
+			blockers,
+			diff,
+			fingerprint: c.snapshot?.fingerprint ?? null,
+			reason: input.reason,
+			writes: []
+		})
+	}
+})
+
+worker.tool("applySybilRecordCorrection", {
+	title: "Apply Sybil record correction",
+	description: "Authorised in-place correction of whitelisted fields on the existing Event/Sale/Balance Sheet — fingerprint, idempotency, rollback, audit.",
+	schema: j.object({
+		operationKey: j.string(),
+		authorisedBy: j.string(),
+		reason: j.string(),
+		expectedFingerprint: j.string(),
+		eventPageId: j.string(),
+		salePageId: j.string(),
+		balanceSheetPageId: j.string(),
+		changesJson: j.string()
+	}),
+	execute: async (input, { notion }) => {
+		const parsed = JSON.parse(input.changesJson) as Record<string, Record<string, unknown>>
+		const changes = { event: parsed.event ?? {}, sale: parsed.sale ?? {}, balanceSheet: parsed.balanceSheet ?? {} }
+		const ids: Record<string, string> = { event: input.eventPageId, sale: input.salePageId, balanceSheet: input.balanceSheetPageId }
+		const audit = await sybilEventAuditText(notion, input.eventPageId)
+		const req = crypto.createHash("sha256").update(JSON.stringify(input)).digest("hex")
+		const done = sybilAppliedOperation(audit, input.operationKey)
+		if (done) {
+			if (done.requestFingerprint !== req) return jsonOutput({ mode: "blocked-no-write", blockers: ["Operation key already applied with a different request."], changed: [] })
+			return jsonOutput({ mode: "idempotent-existing-operation", operationKey: input.operationKey, changed: [] })
+		}
+		const c = await sybilRecordSnapshot(notion, input.eventPageId, input.salePageId, input.balanceSheetPageId, changes)
+		const blockers: string[] = []
+		if (!c.snapshot) blockers.push(`Could not read ${c.missing}.`)
+		if (c.snapshot && c.snapshot.fingerprint !== input.expectedFingerprint) blockers.push("Record changed since preview.")
+		if (!input.operationKey || !input.authorisedBy || !input.reason) blockers.push("operationKey, authorisedBy and reason required.")
+		for (const rec of Object.keys(changes) as ("event" | "sale" | "balanceSheet")[])
+			for (const name of Object.keys(changes[rec]))
+				if (!SYBIL_FIELD_SPEC[rec][name]) blockers.push(`Field not allowed on ${rec}: ${name}`)
+		if (blockers.length) return jsonOutput({ mode: "blocked-no-write", blockers, changed: [] })
+		if (sybilOpenLocks(audit).length) return jsonOutput({ mode: "blocked-no-write", blockers: ["Another Sybil correction is locked."], changed: [] })
+		const before = c.snapshot!.values
+		await appendSybilAudit(notion, input.eventPageId, `[Sybil:${input.operationKey}] locked; authorised by ${input.authorisedBy}; reason: ${input.reason}; before fingerprint: ${c.snapshot!.fingerprint}.`)
+		try {
+			for (const rec of Object.keys(changes) as ("event" | "sale" | "balanceSheet")[]) {
+				const props: Record<string, unknown> = {}
+				for (const [name, value] of Object.entries(changes[rec])) props[name] = sybilPropWrite(value, SYBIL_FIELD_SPEC[rec][name])
+				if (Object.keys(props).length) await notion.pages.update({ page_id: ids[rec], properties: props as never })
+			}
+			const after = await sybilRecordSnapshot(notion, input.eventPageId, input.salePageId, input.balanceSheetPageId, changes)
+			for (const rec of Object.keys(changes) as ("event" | "sale" | "balanceSheet")[])
+				for (const [name, value] of Object.entries(changes[rec]))
+					if (JSON.stringify(after.snapshot?.values[rec]?.[name]) !== JSON.stringify(sybilNormalize(value, SYBIL_FIELD_SPEC[rec][name])))
+						throw Error(`Readback failed on ${rec}.${name}.`)
+			await appendSybilAudit(notion, input.eventPageId, `[Sybil:${input.operationKey}] applied; request fingerprint: ${req}; after fingerprint: ${after.snapshot!.fingerprint}; authoriser: ${input.authorisedBy}.`)
+			return jsonOutput({ mode: "applied-existing-record-only", changed: Object.entries(changes).flatMap(([r, c2]) => Object.keys(c2).map(n => `${r}.${n}`)), neverCreated: ["Event", "Sale", "Balance Sheet"] })
+		} catch (e) {
+			for (const rec of Object.keys(changes) as ("event" | "sale" | "balanceSheet")[]) {
+				const props: Record<string, unknown> = {}
+				for (const name of Object.keys(changes[rec])) props[name] = sybilPropWrite(before[rec]?.[name], SYBIL_FIELD_SPEC[rec][name])
+				if (Object.keys(props).length) await notion.pages.update({ page_id: ids[rec], properties: props as never }).catch(() => undefined)
+			}
+			await appendSybilAudit(notion, input.eventPageId, `[Sybil:${input.operationKey}] rolled back; write/readback failed.`).catch(() => undefined)
+			throw e
+		}
+	}
 })
