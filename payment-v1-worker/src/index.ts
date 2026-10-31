@@ -1530,12 +1530,14 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 
 		const commonProperties = {
 			Events: { relation: relations([input.eventPageId]) },
+			...(dateValue(property(event, "Scheduled"))?.start ? { "Revenue Date": { date: { start: dateValue(property(event, "Scheduled"))!.start } } } : {}),
 			Coaches: { relation: relations(eventCoachIds) },
 			Organisations: { relation: relations(eventOrganisationIds) },
 			Areas: { relation: relations(eventAreaIds) },
 			"Sale Type": { select: { name: product } },
 			"Sale Status": { select: { name: "Confirmed" } },
 			"Financial Route": { select: { name: "Payment V1" } },
+			"Created Via": { select: { name: "tacit-payment-v1" } },
 			"Price List": { relation: relations(priceListIds) },
 			"Resolved Coaching Rate (IDR)": { number: resolvedCoachingRate },
 			"Final Charged Price (IDR)": { number: finalChargedPrice },
