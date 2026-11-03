@@ -1293,7 +1293,8 @@ type ApplyPaymentInput = {
 	paymentVerifiedAt?: string
 	paymentVerifiedById?: string
 	paymentVerificationNote: string
-	paymentChannel: "Bank transfer" | "Courtside" | "Club" | "Ayo" | "Reclub"
+	paymentChannel: "Bank transfer" | "Courtside" | "Club" | "Ayo" | "Reclub" | "Wallet"
+	walletHolderPageId?: string
 	paidTo: "Tacit" | "Club"
 	revenueScope: "Academy Fees" | "Combined"
 	courtHourlyRateIdr: number | null
@@ -1418,6 +1419,13 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 			product === "Clinic" || product === "Play with Coach"
 				? publishedPrice === null ? null : round(publishedPrice * (1 - input.sharedDiscountPercent))
 				: resolvedCoachingRate === null ? null : round(resolvedCoachingRate * (1 - input.sharedDiscountPercent))
+		const eventSchedule = dateValue(property(event, "Scheduled"))
+		const chargedHours =
+			eventSchedule?.start && eventSchedule.end
+				? (new Date(eventSchedule.end).getTime() - new Date(eventSchedule.start).getTime()) / 3_600_000
+				: 1
+		const finalChargedTotalPrice =
+			finalChargedPrice === null ? null : round(finalChargedPrice * input.studentPageIds.length * chargedHours)
 
 		if (
 			eventCoachIds.length === 0 ||
@@ -1528,6 +1536,14 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 			}
 		}
 
+		let walletType: string | null = null
+		if (input.paymentChannel === "Wallet" && input.walletHolderPageId) {
+			const rawWallet = await notion.pages.retrieve({ page_id: input.walletHolderPageId })
+			if ("properties" in rawWallet) {
+				walletType = textValue(property(rawWallet as unknown as NotionPage, "Wallet Type")) || null
+			}
+		}
+
 		const commonProperties = {
 			Events: { relation: relations([input.eventPageId]) },
 			...(dateValue(property(event, "Scheduled"))?.start ? { "Revenue Date": { date: { start: dateValue(property(event, "Scheduled"))!.start } } } : {}),
@@ -1540,7 +1556,7 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 			"Created Via": { select: { name: "tacit-payment-v1" } },
 			"Price List": { relation: relations(priceListIds) },
 			"Resolved Coaching Rate (IDR)": { number: resolvedCoachingRate },
-			"Final Charged Price (IDR)": { number: finalChargedPrice },
+			"Final Charged Price (IDR)": { number: finalChargedTotalPrice },
 			"Revenue Scope": { select: { name: input.revenueScope } },
 			"Court Hourly Rate (IDR)": { number: input.courtHourlyRateIdr },
 			"Shared Discount %": { number: input.sharedDiscountPercent },
@@ -1581,6 +1597,13 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 				"Sale Role": { select: { name: "Revenue" } },
 				"Payment Channel": { select: { name: input.paymentChannel } },
 				"Paid To": { select: { name: input.paidTo } },
+				...(input.paymentChannel === "Wallet" && input.walletHolderPageId
+					? {
+						Group: { relation: relations([input.walletHolderPageId]) },
+						"Wallet 1 Draw (IDR)": { number: finalChargedTotalPrice },
+						...(walletType ? { "Wallet Type": { select: { name: walletType } } } : {}),
+					}
+					: {}),
 				...(input.paymentVerifiedAt ? { "Payment Verified At": { date: { start: input.paymentVerifiedAt } } } : {}),
 				...(input.paymentVerifiedById ? { "Payment Verified By": { people: [{ id: input.paymentVerifiedById }] } } : {}),
 				"Payment Verification Note": {
@@ -1604,6 +1627,20 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 		const ledger = await ensureLedger(revenue.id)
 		const capacityConfirmation = await confirmEventIfPaidCapacity(notion, input.eventPageId)
 
+		let createdRateId: string | null = null
+		if (!relationIds(property(event, "Hourly Rate")).length) {
+			const rate = await notion.pages.create({
+				parent: { data_source_id: "296afdfb-c3c7-816c-b798-000b917a3347" },
+				properties: {
+					Rate: { title: [{ text: { content: `TP-000000 · ${eventTitle}` } }] },
+					"Database Group": { select: { name: "Knowledge" } },
+					People: { relation: relations(eventCoachIds) },
+					Events: { relation: relations([input.eventPageId]) },
+				} as never,
+			})
+			createdRateId = rate.id
+		}
+
 		return {
 			mode: "applied",
 			operationKey: input.operationKey,
@@ -1611,6 +1648,7 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 			revenueSaleId: revenue.id,
 			costSaleId: existingCostSaleId,
 			ledgerId: ledger.ledgerId,
+			rateRecordId: createdRateId,
 			capacityConfirmation,
 			resolvedCoachingRateIdr: resolvedCoachingRate,
 			finalChargedPricePerStudentIdr: finalChargedPrice,
@@ -1618,17 +1656,18 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 				...(createdCostSale ? ["shared Cost Sale"] : []),
 				"Revenue Sale",
 				...(ledger.created ? ["Balance Sheet ledger"] : []),
+				...(createdRateId ? ["Hourly Rate"] : []),
 			],
 			blockers: [],
 			note: null,
-			neverCreated: ["Hourly Rate"],
+			neverCreated: [],
 		}
 }
 
 worker.tool("applyPaymentV1VerifiedSale", {
 	title: "Apply verified Payment V1 sale",
 	description:
-		"Controlled, zero-discount Payment V1 accounting step. Re-reads and validates the Event and its published Price List (the period covering the lesson date), idempotently creates or reuses the permitted V1 Revenue Sale and its one linked Balance Sheet ledger row. At exact paid capacity it confirms the Event. Compensation is deliberately outside this route. It never creates an Hourly Rate.",
+		"Controlled, zero-discount Payment V1 accounting step. Re-reads and validates the Event and its published Price List (the period covering the lesson date), idempotently creates or reuses the permitted V1 Revenue Sale and its one linked Balance Sheet ledger row. At exact paid capacity it confirms the Event. Creates an Hourly Rate record if the Event lacks one. Compensation is deliberately outside this route.",
 	schema: j.object({
 		operationKey: j.string().describe("Stable operator-confirmed idempotency key for this payment."),
 		eventPageId: j.string().describe("The Payment V1 Event page ID."),
@@ -1636,7 +1675,7 @@ worker.tool("applyPaymentV1VerifiedSale", {
 		paymentVerifiedAt: j.string().describe("ISO-8601 timestamp at which payment was verified."),
 		paymentVerifiedById: j.string().describe("Notion user ID of the payment verifier."),
 		paymentVerificationNote: j.string().describe("Short non-sensitive evidence or director-confirmation note."),
-		paymentChannel: j.enum("Bank transfer", "Courtside", "Club", "Ayo", "Reclub").describe("Verified payment route."),
+		paymentChannel: j.enum("Bank transfer", "Courtside", "Club", "Ayo", "Reclub", "Wallet").describe("Verified payment route."),
 		paidTo: j.enum("Tacit", "Club").describe("Recipient that collected the payment."),
 		revenueScope: j.enum("Academy Fees", "Combined").describe("Approved revenue scope copied to the V1 Sales records."),
 		courtHourlyRateIdr: j.number().nullable().describe("Court rate used for Academy Fees scope, or null when the product has no separate court rental."),
@@ -1655,7 +1694,8 @@ type PaymentV1EventInstruction = {
 	paymentVerifiedAt?: string
 	paymentVerifiedById?: string
 	paymentVerificationNote: string
-	paymentChannel: "Bank transfer" | "Courtside" | "Club" | "Ayo" | "Reclub"
+	paymentChannel: "Bank transfer" | "Courtside" | "Club" | "Ayo" | "Reclub" | "Wallet"
+	walletHolderPageId?: string
 	paidTo: "Tacit" | "Club"
 	revenueScope: "Academy Fees" | "Combined"
 	courtHourlyRateIdr: number | null
@@ -1698,15 +1738,18 @@ const eventInstruction = (event: NotionPage): PaymentV1EventInstruction | null =
 	)
 	for (const item of candidates.reverse()) {
 		if (item.processingType !== "Payment" || typeof item.operationKey !== "string" || typeof item.eventPageId !== "string" || !Array.isArray(item.studentPageIds)) continue
-		if (typeof item.paymentVerificationNote !== "string") continue
+		const isWalletChannel = item.paymentChannel === "Wallet"
+		const verificationNoteMissing = item.paymentVerificationNote === null || item.paymentVerificationNote === undefined
+		if (typeof item.paymentVerificationNote !== "string" && !(isWalletChannel && verificationNoteMissing)) continue
 		if (typeof item.paymentChannel !== "string" || typeof item.paidTo !== "string" || typeof item.revenueScope !== "string") continue
 		if (typeof item.sharedDiscountPercent !== "number" || !Array.isArray(item.discountReasons) || typeof item.discountExplanation !== "string") continue
 		return {
 			operationKey: item.operationKey, eventPageId: item.eventPageId,
 			studentPageIds: item.studentPageIds.filter((id): id is string => typeof id === "string"),
 			processingType: "Payment", paymentVerifiedAt: typeof item.paymentVerifiedAt === "string" ? item.paymentVerifiedAt : undefined, paymentVerifiedById: typeof item.paymentVerifiedById === "string" ? item.paymentVerifiedById : undefined,
-			paymentVerificationNote: item.paymentVerificationNote,
+			paymentVerificationNote: typeof item.paymentVerificationNote === "string" ? item.paymentVerificationNote : "Wallet-funded payment",
 			paymentChannel: item.paymentChannel as PaymentV1EventInstruction["paymentChannel"], paidTo: item.paidTo as PaymentV1EventInstruction["paidTo"],
+			walletHolderPageId: typeof item.walletHolderPageId === "string" ? item.walletHolderPageId : undefined,
 			revenueScope: item.revenueScope as PaymentV1EventInstruction["revenueScope"],
 			courtHourlyRateIdr: typeof item.courtHourlyRateIdr === "number" ? item.courtHourlyRateIdr : null,
 			sharedDiscountPercent: item.sharedDiscountPercent,
@@ -1735,7 +1778,9 @@ const eventInstructionFromPageContent = async (
 	)
 	for (const item of candidates.reverse()) {
 		if (item.processingType !== "Payment" || typeof item.operationKey !== "string" || typeof item.eventPageId !== "string" || !Array.isArray(item.studentPageIds)) continue
-		if (typeof item.paymentVerificationNote !== "string") continue
+		const isWalletChannel = item.paymentChannel === "Wallet"
+		const verificationNoteMissing = item.paymentVerificationNote === null || item.paymentVerificationNote === undefined
+		if (typeof item.paymentVerificationNote !== "string" && !(isWalletChannel && verificationNoteMissing)) continue
 		if (typeof item.paymentChannel !== "string" || typeof item.paidTo !== "string" || typeof item.revenueScope !== "string") continue
 		if (typeof item.sharedDiscountPercent !== "number" || !Array.isArray(item.discountReasons) || typeof item.discountExplanation !== "string") continue
 		return {
@@ -1745,9 +1790,10 @@ const eventInstructionFromPageContent = async (
 			processingType: "Payment",
 			paymentVerifiedAt: typeof item.paymentVerifiedAt === "string" ? item.paymentVerifiedAt : undefined,
 			paymentVerifiedById: typeof item.paymentVerifiedById === "string" ? item.paymentVerifiedById : undefined,
-			paymentVerificationNote: item.paymentVerificationNote,
+			paymentVerificationNote: typeof item.paymentVerificationNote === "string" ? item.paymentVerificationNote : "Wallet-funded payment",
 			paymentChannel: item.paymentChannel as PaymentV1EventInstruction["paymentChannel"],
 			paidTo: item.paidTo as PaymentV1EventInstruction["paidTo"],
+			walletHolderPageId: typeof item.walletHolderPageId === "string" ? item.walletHolderPageId : undefined,
 			revenueScope: item.revenueScope as PaymentV1EventInstruction["revenueScope"],
 			courtHourlyRateIdr: typeof item.courtHourlyRateIdr === "number" ? item.courtHourlyRateIdr : null,
 			sharedDiscountPercent: item.sharedDiscountPercent,
@@ -2817,7 +2863,7 @@ type PlayerAcademyPurchaseInput = {
 	clubPageId: string
 	courtRentalIdr: number
 	processingType: "Payment" | "Promo"
-	paymentChannel: "Bank transfer" | "Courtside" | "Club" | "Ayo" | "Reclub"
+	paymentChannel: "Bank transfer" | "Courtside" | "Club" | "Ayo" | "Reclub" | "Wallet"
 	paidTo: "Tacit" | "Club"
 	paymentVerifiedAt?: string
 	paymentVerifiedById?: string
