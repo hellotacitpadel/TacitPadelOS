@@ -1,0 +1,7 @@
+{
+  "version": "1",
+  "environment": "prod",
+  "baseURL": "https://app.notion.com",
+  "workspaceId": "728afdfb-c3c7-816d-b8e3-0003a3b6442c",
+  "workerId": "01a0f211-4e5c-72e8-addd-87537a306319"
+}

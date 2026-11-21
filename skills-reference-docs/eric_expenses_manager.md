@@ -11,7 +11,7 @@
 
 | Database | URL | Access |
 |---|---|
-| TP: Balance Sheet |  | Read + write (Budget Category when explicitly selected by Nick during TP: Balance Sheet ingestion or approved classification/edit workflows, Item, Person, FX Source Currency, FX Source Amount, Billing Period, Invoice Number, Bank Reference when verified from the source, Payment Status on Mode 5 creation only, Reimbursement Status, Reimbursement Date, People, Organisations, Note, Files & media). Price properties and FX currency/rate/timestamp are Worker-owned outputs, not Eric inputs. |
+| TP: Balance Sheet |  | Read + write (Budget Category when explicitly selected by the submitting operator during TP: Balance Sheet ingestion or approved classification/edit workflows, Item, Person, FX Source Currency, FX Source Amount, Billing Period, Invoice Number, Bank Reference when verified from the source, Payment Status on Mode 5 creation only, Reimbursement Status, Reimbursement Date, People, Organisations, Note, Files & media). Price properties and FX currency/rate/timestamp are Worker-owned outputs, not Eric inputs. |
 | TP: Expenses Inbox (legacy reference — unverified) |  | Do not use for Mode 3 until Nick confirms the user-facing database exists and its live schema/permissions support the intake fields. The connected-source metadata loaded in this audit did not match the documented schema. If unconfirmed, stop Mode 3; do not route elsewhere by assumption. |
 | TP: Personal Expenses |  | Read + create (Item, one source Price column, Transaction Date, Billing Period, Invoice Number, In/Out, Person, Note, Files & media) |
 | Notion Mail | nick@tacitpadel.com | Read-only (invoice/receipt source; extract PDF via readAttachment) |
@@ -35,7 +35,7 @@ After each record is created, verify that its body contains both the deferral-co
 > ⚠️ Mode 3 turns emailed invoices/receipts into finance records under line-by-line approval. Load this section before ingesting.
 ### The 5 must-fixes (Critic — non-negotiable)
 
-1. Budget Category is user-selected — for each TP: Balance Sheet record, show the exact live options and obtain Nick's explicit selection during ingestion before create. Never infer or preselect. If no selection is provided, pause that record.
+1. Budget Category is user-selected — for each TP: Balance Sheet record, show the exact live options and obtain the submitting operator's explicit selection during ingestion before create. The operator submitting the expense (e.g. Jose) may make the selection; Nick's own selection is not required. Never infer or preselect. If no selection is provided, pause that record.
 1. Dedupe before create — check the destination for an existing match first (Q6). Prefer Invoice Number; otherwise compare vendor, date/period, source currency and full native amount.
 1. Keep source units intact — write FX Source Amount in full native currency units and show both raw source amount and the expected IDR output in thousands at approval.
 1. Currency → authoritative FX inputs — set FX Source Currency to an exact current schema option and FX Source Amount to the full native amount; the native Worker owns Price and FX audit outputs (G7).
@@ -57,7 +57,7 @@ Google Workspace invoice: sender payments-noreply@google.com; subject "Google Wo
 | Who paid / reimbursement claimant | Person (Balance Sheet) | Notion user. Set to the actual individual payer when verified; do not infer from the submitter or People relation. |
 | Who the expense is against | People (Balance Sheet) | TP: People relation for cost-attribution. May include multiple people; never use it to identify the payer. |
 | Expense owner (Inbox / Personal Expenses) | Person | Notion user owner field on these data sources; they have no People relation. |
-| Budget Category | Budget Category (Balance Sheet) | Nick must select the exact live option(s) during ingestion before create. Eric must not infer, preselect, or default a category; pause if no choice is given. |
+| Budget Category | Budget Category (Balance Sheet) | The submitting operator must select the exact live option(s) during ingestion before create. Eric must not infer, preselect, or default a category; pause if no choice is given. |
 | Price fields; FX currency used, FX rate used and FX timestamp | — (native FX Worker) | Worker-owned outputs. Eric never writes them; after a Balance Sheet create, wait for the native trigger and verify the outputs (G7). |
 ### IDR scaling — worked example
 
@@ -73,7 +73,7 @@ Before writing, load the live TP: Balance Sheet schema and choose the exact conf
 - Expenses Inbox → legacy/unverified route. Do not create, query or delete Inbox rows until Nick confirms the user-facing database, permissions and exact live schema. If it is not confirmed, stop Mode 3 before any write; do not reroute Mail items to TP: Balance Sheet or Personal Expenses under Mode 5 rules.
 ### Line-by-line approval
 
-Present each proposed record individually — Item, Nick-selected Budget Category, FX Source Currency, FX Source Amount (full native amount), expected IDR output in thousands where applicable, Transaction Date, In/Out, Person (verified payer), People (expense attribution), destination — and wait for Nick's explicit go. Never batch-create silently. "Don't create" is always a valid outcome.
+Present each proposed record individually — Item, operator-selected Budget Category, FX Source Currency, FX Source Amount (full native amount), expected IDR output in thousands where applicable, Transaction Date, In/Out, Person (verified payer), People (expense attribution), destination — and wait for Nick's explicit go. Never batch-create silently. "Don't create" is always a valid outcome.
 ---
 ## Direct Attachment Ingestion — Extraction & Mapping (Mode 5)
 
@@ -94,11 +94,11 @@ Reuse Mode 3's extraction fields, Q6 dedupe logic, full-native-unit FX source-in
 - Write Bank Reference only when a bank transaction reference is verified in the source; otherwise leave it blank.
 - Write the original file to Files & media on the destination record.
 - Set Payment Status only from verified payment evidence. For company-paid directly, set Reimbursement Status = Direct and leave Person empty. For an individual-paid out-of-pocket expense, set Reimbursement Status = Unclaimed and Person to the verified payer. If payer/payment facts are unclear, ask; never infer from submitter.
-- Require Nick's explicit Budget Category selection from the exact live options before creating a TP: Balance Sheet row; never infer or preselect. Pause if no choice is provided.
+- Require the submitting operator's explicit Budget Category selection from the exact live options before creating a TP: Balance Sheet row; never infer or preselect. Pause if no choice is provided.
 - The chat attachment is the intake; do not redirect it to another submission channel.
 ### Submission summary
 
-For each document, capture filename, Item/vendor, Nick-selected Budget Category (Balance Sheet only), FX Source Currency, full-native-unit FX Source Amount, expected IDR output in thousands where applicable, Transaction Date, Billing Period, Invoice Number, verified Bank Reference if present, In/Out, verified Person/People, payment evidence and resulting status, destination, proposed properties, and original-file retention check. Do not create a Balance Sheet row until Nick selects its category. For Tacit TP: Balance Sheet, intentional submission authorises capture before Nick's review. For Personal Expenses, Nick's pre-creation approval remains required. After Balance Sheet creation, provide the row link for Nick's post-entry review.
+For each document, capture filename, Item/vendor, operator-selected Budget Category (Balance Sheet only), FX Source Currency, full-native-unit FX Source Amount, expected IDR output in thousands where applicable, Transaction Date, Billing Period, Invoice Number, verified Bank Reference if present, In/Out, verified Person/People, payment evidence and resulting status, destination, proposed properties, and original-file retention check. Do not create a Balance Sheet row until the submitting operator selects its category. For Tacit TP: Balance Sheet, intentional submission authorises capture before Nick's review. For Personal Expenses, Nick's pre-creation approval remains required. After Balance Sheet creation, provide the row link for Nick's post-entry review.
 ### Atomic retention rule
 
 If the original file cannot be retained in Files & media, do not create the financial record. A record without its required original source attachment is an incomplete Mode 5 write.
@@ -122,7 +122,7 @@ Grab for Business (Transport export). Filename pattern: [YYYYMMDD]_[HHMM]_Transp
 | Trip date/time | Transaction Date | Per-trip — do not aggregate into a monthly total. |
 | Distance / trip detail fields | Note (context only) | Optional context. Not a required field. |
 | Direction | In/Out | Outgoing. |
-| Budget Category | Budget Category (Balance Sheet) | Nick selects the exact live option(s) for each row during batch ingestion. Never infer or preselect; do not create a row without a selection. |
+| Budget Category | Budget Category (Balance Sheet) | The operator selects the exact live option(s) for each row during batch ingestion. Never infer or preselect; do not create a row without a selection. |
 Item naming. Follow Pattern Library "Transport (individual ride)" pattern: [Mode] to/from [Venue] ([date if duplicate]) — e.g. Grab to [destination]. If destination isn't identifiable from the export, use Grab trip ([date]).
 ---
 ## SQL Query Templates
@@ -254,12 +254,12 @@ Bind [period start, period end, '%Grab%'] (swap the provider name for future for
 ---
 ## Budget Category Decision Tree
 
-For each Outgoing BS record, evaluate the Item name and context against this tree. Propose the first match. If ambiguous, present the top 2 candidates for Nick to choose.
+For each Outgoing BS record, evaluate the Item name and context against this tree. Propose the first match. If ambiguous, present the top 2 candidates for the submitting operator to choose.
 | Category | Use when | Examples | Not this |
 |---|---|
 | Accommodation | Lodging, hotels, Airbnb, room rental | Hotel for coaching trip, Airbnb Jakarta | Not office rent (→ Fees) |
-| Coaching Equipment | Padel-specific gear purchased for ongoing use: balls, rackets, grips, nets | Head Padel balls x6, grip tape, temporary net | Not general supplies (→ Supplies); not items rented with a court (→ Court Rental) |
-| Court Rental | Court/venue hire, and anything rented as part of a court booking (not purchased) — including equipment or session staff bundled into the hire | Court rental at Tom's Padel (TP-427), equipment rented with the court, ball boy for the session | Not purchased gear (→ Coaching Equipment) |
+| Coaching Equipment | Padel-specific gear purchased for ongoing use: balls, rackets, grips, nets | Head Padel balls x6, grip tape, temporary net | Not general supplies (→ Supplies); not items rented for a session (→ Court Rental) |
+| Court Rental | Court/venue hire, and anything rented for a session on a booked court (not purchased) — including equipment or session staff, whether bundled into the court payment or paid separately | Court rental at Tom's Padel (TP-427), equipment rented with the court, basket and balls rented for a session, ball boy for the session | Not purchased gear (→ Coaching Equipment) |
 | Education | Courses, certifications, training, books for professional development | FIP coaching cert, online course, coaching book | Not software courses (→ Software) |
 | Expenses | General/miscellaneous that doesn't fit other categories | Bank fees, ATM withdrawal fees, currency exchange costs | Last resort — try other categories first |
 | F & B | Food and beverages — meals, drinks, catering | Team lunch, coffee meeting, post-session drinks | Not corporate hospitality (→ Fees) |
@@ -282,7 +282,7 @@ Ambiguity rules:
 - Transport vs Travel: if same city → Transport. If different city/country → Travel.
 - Fees vs Salaries: if regular/ongoing person → Salaries. If one-off professional service → Fees.
 - Coaching Equipment vs Supplies: if padel-specific → Coaching Equipment. If general → Supplies.
-- Court Rental vs Coaching Equipment: if rented as part of a court booking → Court Rental. If purchased for ongoing use → Coaching Equipment.
+- Court Rental vs Coaching Equipment: if rented for a session on a booked court — whether on the same bill as the court or paid separately → Court Rental. If purchased for ongoing use → Coaching Equipment.
 - Court Rental vs Fees: court/venue hire → Court Rental (previously routed to Fees). Other professional/venue fees stay → Fees.
 - If a record has a Sales relation with Sale Type context (Priya amendment), use that to inform: sale-linked Outgoing is likely Revenue.
 ---
@@ -345,7 +345,7 @@ Established naming patterns by category. Eric must match against these when clas
 | Vendor | [Description] ([context]) | PT PMA amendments (incl. virtual office) | Descriptive — these are usually one-off, so context helps. |
 | Expenses (misc) | [Description] ([context]) | Petty cash: India | Last resort category. Be descriptive. |
 | Supplies | [Item] | Stationery | Simple, descriptive. |
-| Court Rental | Court rental at [Venue] ([TP-ref or Month YYYY]) | Court rental at Tom's Padel (TP-427) | Use the TP-sale ref or month to disambiguate. Equipment/staff rented with the court: describe the item at the same venue (e.g. "Equipment rental at Tom's Padel (TP-427)"). |
+| Court Rental | Court rental at [Venue] ([TP-ref or Month YYYY]) | Court rental at Tom's Padel (TP-427) | Use the TP-sale ref or month to disambiguate. Equipment/staff rented for the session, whether bundled with the court payment or paid separately: describe the item at the same venue (e.g. "Equipment rental at Tom's Padel (TP-427)"). |
 ### Enforcement Protocol
 
 1. On every classify/rename — Eric loads this pattern library and matches the record's Budget Category to find the applicable pattern. If a match exists, the proposed name must follow it.
@@ -403,13 +403,13 @@ Group by payer (Person) if multiple people have outstanding items. Show subtotal
 [DD/MM/YYYY] Organisations: empty → [Name] by Eric
 ### Record Creation (Mode 3)
 
-[DD/MM/YYYY] Created by Eric from Mail ([sender/subject]) → [DB]. Amount recorded: [Balance Sheet — FX Source Currency: code; FX Source Amount: full native amount | Personal Expenses — source Price field: amount + currency]. Transaction Date: [date], Budget Category: [Nick-selected option(s) or not applicable], Person (payer): [verified payer or empty], People (expense attribution): [person(s) or empty].
+[DD/MM/YYYY] Created by Eric from Mail ([sender/subject]) → [DB]. Amount recorded: [Balance Sheet — FX Source Currency: code; FX Source Amount: full native amount | Personal Expenses — source Price field: amount + currency]. Transaction Date: [date], Budget Category: [operator-selected option(s) or not applicable], Person (payer): [verified payer or empty], People (expense attribution): [person(s) or empty].
 ### Record Creation (Mode 4)
 
-[DD/MM/YYYY] Created by Eric from [source file name] (row [n]) → TP: Balance Sheet. FX Source Currency: [code], FX Source Amount: [full native amount], Transaction Date: [date], Budget Category: [Nick-selected option(s)], Person (payer): [verified payer or empty], People (expense attribution): [person(s) or empty].
+[DD/MM/YYYY] Created by Eric from [source file name] (row [n]) → TP: Balance Sheet. FX Source Currency: [code], FX Source Amount: [full native amount], Transaction Date: [date], Budget Category: [operator-selected option(s)], Person (payer): [verified payer or empty], People (expense attribution): [person(s) or empty].
 ### Record Creation (Mode 5)
 
-[DD/MM/YYYY] Created by Eric from direct attachment ([source file name]) → [DB]. Amount recorded: [Balance Sheet — FX Source Currency: code; FX Source Amount: full native amount | Personal Expenses — source Price field: amount + currency]. Transaction Date: [date], Budget Category: [Nick-selected option(s) or not applicable], Bank Reference: [verified reference or empty], Person (payer): [verified payer or empty], People (expense attribution): [person(s) or empty], Payment Status: [verified status], Reimbursement Status: [verified status]. Original retained in Files & media.
+[DD/MM/YYYY] Created by Eric from direct attachment ([source file name]) → [DB]. Amount recorded: [Balance Sheet — FX Source Currency: code; FX Source Amount: full native amount | Personal Expenses — source Price field: amount + currency]. Transaction Date: [date], Budget Category: [operator-selected option(s) or not applicable], Bank Reference: [verified reference or empty], Person (payer): [verified payer or empty], People (expense attribution): [person(s) or empty], Payment Status: [verified status], Reimbursement Status: [verified status]. Original retained in Files & media.
 ### Routing (Mode 3)
 
 [DD/MM/YYYY] Routed by Eric: Expenses Inbox → [destination]. Inbox source row deleted.
@@ -435,6 +435,7 @@ When reviewing multiple records:
 ---
 ## Changelog
 
+- 2026-11-10 — Budget Category selection widened: the submitting operator (e.g. Jose) may select the exact live option during ingestion; Nick's own selection is no longer required. Eric still must not infer or preselect, and pauses when no selection is given. Nick's Mode 3 pre-creation approval, Mode 5 post-entry review, Personal Expenses approval, and pattern-library approval are unchanged. Also clarified the Court Rental decision-tree row and Pattern Library note: equipment or session staff rented for a session on a booked court classifies as Court Rental whether bundled into the court payment or paid separately (prompted by a WePadel basket-and-balls rental paid separately by Jose while the customer paid the court).
 - 2026-10-06 — Added a verified-source-only Bank Reference mapping for Balance Sheet ingestion and included it in Mode 5 previews and creation audit lines; kept Invoice Number as the primary document dedupe key.
 - 2026-10-06 — At Nick's direction, changed Balance Sheet ingestion to require the user's explicit Budget Category selection from live options before create; Eric must not infer or preselect, and batch rows without a choice are not created.
 - 2026-10-06 — Full Eric audit fixes: Mode 5 reuses only Mode 3 extraction/dedupe/FX/split logic, not its approval or Inbox route; capture statuses follow verified payment/payer; marked Inbox unverified, disabled stale Q7, fixed Q4's date column, and aligned template/review wording. Live create chain remains unverified. CR Extend Eric — direct receipt attachment ingestion.

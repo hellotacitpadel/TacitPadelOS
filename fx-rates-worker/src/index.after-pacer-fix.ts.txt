@@ -1,0 +1,876 @@
+import { Client } from "@notionhq/client"
+import { Worker } from "@notionhq/workers"
+import * as Builder from "@notionhq/workers/builder"
+import * as Schema from "@notionhq/workers/schema"
+import { j } from "@notionhq/workers/schema-builder"
+
+const worker = new Worker()
+export default worker
+
+const FX_RATES_DATA_SOURCE_ID = "94e5abc1-d98e-4181-8a8e-42f973902924"
+const BALANCE_SHEET_DATA_SOURCE_ID = "267afdfb-c3c7-81d9-bc0f-000bb3cd7f70"
+const OUTPUT_CURRENCIES = ["GBP", "USD", "EUR", "INR"] as const
+const SEEDED_BASE_CURRENCIES = [
+  ...OUTPUT_CURRENCIES,
+  "SGD",
+  "AUD",
+  "JPY",
+  "CNY",
+  "MYR",
+  "THB",
+  "HKD",
+  "KRW",
+  "AED",
+  "PHP",
+  "VND",
+] as const
+const QUOTE_CURRENCY = "IDR"
+const FX_BACKFILL_START = "2025-09-01"
+const DAILY_LOOKBACK_DAYS = 30
+const IDR_STORAGE_DIVISOR = 1000
+const HEADER_SOURCE_VALUE = "balance-sheet-fx-v1"
+const FLOAT_EPSILON = 0.0005
+
+type OutputCurrency = (typeof OUTPUT_CURRENCIES)[number]
+type SeededBaseCurrency = (typeof SEEDED_BASE_CURRENCIES)[number]
+type SupportedCurrency = OutputCurrency | "IDR"
+type FxRateRecord = {
+  base: string
+  quote: string
+  date: string
+  rate: number
+  sourceUrl: string
+}
+type SourceDecision =
+  | {
+      kind: "ok"
+      sourceCurrency: string
+      sourceAmount: number
+      sourceKind: string
+    }
+  | {
+      kind: "skip"
+      reason: string
+    }
+type ReconcileResult = {
+  pageId: string
+  transactionDate: string | null
+  skipped: boolean
+  reason?: string
+  sourceCurrency?: string
+  sourceAmount?: number
+  rateUsed?: number
+  changedFields: string[]
+  applied?: boolean
+}
+
+type AnyPage = { id: string; properties: Record<string, any> }
+
+const frankfurterApi = worker.pacer("frankfurterApi", {
+  allowedRequests: 1,
+  intervalMs: 400,
+})
+
+const fxRates = worker.database("fxRates", {
+  type: "attached",
+  initialTitle: "TP: FX Rates",
+  primaryKeyProperty: "Key",
+  schema: {
+    properties: {
+      Name: Schema.title(),
+      Key: Schema.richText(),
+      "Base Currency": Schema.richText(),
+      "Quote Currency": Schema.richText(),
+      Rate: Schema.number(),
+      "Rate Date": Schema.date(),
+      "Effective Rate Date": Schema.date(),
+      "Retrieved At": Schema.date(),
+      Provider: Schema.richText(),
+      "Source URL": Schema.url(),
+    },
+  },
+})
+
+worker.sync("fxRatesDaily", {
+  database: fxRates,
+  mode: "incremental",
+  schedule: "24h",
+  execute: async () => {
+    const endDate = todayIsoDate()
+    const startDate = shiftIsoDate(endDate, -(DAILY_LOOKBACK_DAYS - 1))
+    return syncRateWindow(startDate, endDate, [...SEEDED_BASE_CURRENCIES])
+  },
+})
+
+worker.sync("fxRatesBackfill", {
+  database: fxRates,
+  mode: "incremental",
+  schedule: "manual",
+  execute: async () => {
+    return syncRateWindow(FX_BACKFILL_START, todayIsoDate(), [...SEEDED_BASE_CURRENCIES])
+  },
+})
+
+worker.tool("updateBalanceSheetFx", {
+  title: "Update Balance Sheet FX",
+  description:
+    "Recalculate the FX-derived Balance Sheet outputs for one Balance Sheet row.",
+  schema: j.object({
+    pageIdOrUrl: j
+      .string()
+      .describe("The Balance Sheet page ID or page URL to recalculate."),
+  }),
+  execute: async ({ pageIdOrUrl }, context) => {
+    const notion = getNotionClient(context)
+    return reconcileBalanceSheetRow(notion, parsePageIdOrUrl(pageIdOrUrl))
+  },
+})
+
+worker.tool("reconcileBalanceSheetFx", {
+  title: "Reconcile Balance Sheet FX",
+  description:
+    "Preview FX differences without writes by default. Apply only with explicit mode=apply. Process at most 25 rows per call; use nextCursor for the next batch.",
+  schema: j.object({
+    pageIdsOrUrls: j.array(j.string()).describe("Explicit Balance Sheet rows; at most 25. Null to scan a batch.").nullable(),
+    limit: j.number().describe("Batch size, 1 to 25; defaults to 10.").nullable(),
+    mode: j.enum("preview", "apply").describe("Null or preview means NO WRITES. Apply must be explicit.").nullable(),
+    startCursor: j.string().describe("Cursor from the preceding scan batch; null for the first batch.").nullable(),
+  }),
+  execute: async ({ pageIdsOrUrls, limit, mode, startCursor }, context) => {
+    const notion = getNotionClient(context)
+    const resolvedMode = mode ?? "preview"
+    if (resolvedMode !== "preview" && resolvedMode !== "apply") {
+      throw new Error("mode must be preview or apply.")
+    }
+    if (pageIdsOrUrls && pageIdsOrUrls.length > 25) {
+      throw new Error("Supply at most 25 explicit rows per call.")
+    }
+    if (pageIdsOrUrls?.length && startCursor) {
+      throw new Error("Use either explicit rows or a scan cursor, not both.")
+    }
+    const batch = pageIdsOrUrls?.length
+      ? { pageIds: [...new Set(pageIdsOrUrls.map(parsePageIdOrUrl))], hasMore: false, nextCursor: null }
+      : await listBalanceSheetPageBatch(notion, clamp(Math.trunc(limit ?? 10), 1, 25), startCursor)
+    const results: ReconcileResult[] = []
+    const errors: Array<{ pageId: string; error: string }> = []
+    for (const pageId of batch.pageIds) {
+      try {
+        results.push(await reconcileBalanceSheetRow(notion, pageId, resolvedMode === "preview"))
+      } catch (error) {
+        errors.push({ pageId, error: error instanceof Error ? error.message : String(error) })
+      }
+    }
+    return {
+      mode: resolvedMode,
+      processed: batch.pageIds.length,
+      wouldUpdate: results.filter((result) => result.changedFields.length > 0).length,
+      updated: results.filter((result) => result.applied).length,
+      skipped: results.filter((result) => result.skipped).length,
+      errorCount: errors.length,
+      hasMore: batch.hasMore,
+      nextCursor: batch.nextCursor,
+      results,
+      errors,
+    }
+  },
+})
+
+worker.webhook("balanceSheetFx", {
+  title: "Balance Sheet FX webhook",
+  description:
+    "Refresh FX-derived Balance Sheet outputs when the Balance Sheet automation fires.",
+  execute: async (events, context) => {
+    const notion = getNotionClient(context)
+
+    for (const event of events) {
+      const sourceHeader = getHeader(event.headers, "x-tacitos-source")
+      if (sourceHeader && sourceHeader !== HEADER_SOURCE_VALUE) {
+        console.warn(`Unexpected X-TacitOS-Source header: ${sourceHeader}`)
+      }
+
+      const pageIds = extractBalanceSheetPageIds(event.body)
+      if (pageIds.length === 0) {
+        throw new Error(
+          `No Balance Sheet page ID found in webhook payload: ${truncateJson(event.body)}`
+        )
+      }
+
+      for (const pageId of pageIds) {
+        const result = await reconcileBalanceSheetRow(notion, pageId)
+        console.log(JSON.stringify({ capability: "balanceSheetFx", ...result }))
+      }
+    }
+  },
+})
+
+async function syncRateWindow(
+  startDate: string,
+  endDate: string,
+  bases: string[]
+) {
+  const nowIso = new Date().toISOString()
+  const changes: any[] = []
+
+  for (const base of bases) {
+    const rows = await fetchFrankfurterSeries(base, [QUOTE_CURRENCY], startDate, endDate)
+    for (const row of rows) {
+      changes.push({
+        type: "upsert",
+        key: buildRateKey(row.date, row.base, row.quote),
+        properties: {
+          Name: Builder.title(`${row.base}/${row.quote} · ${row.date}`),
+          Key: Builder.richText(buildRateKey(row.date, row.base, row.quote)),
+          "Base Currency": Builder.richText(row.base),
+          "Quote Currency": Builder.richText(row.quote),
+          Rate: Builder.number(row.rate),
+          "Rate Date": Builder.date(row.date),
+          "Effective Rate Date": Builder.date(row.date),
+          "Retrieved At": Builder.dateTime(nowIso),
+          Provider: Builder.richText("Frankfurter"),
+          "Source URL": Builder.url(row.sourceUrl),
+        },
+      })
+    }
+  }
+
+  return {
+    changes,
+    hasMore: false,
+  }
+}
+
+async function reconcileBalanceSheetRow(
+  notion: Client,
+  pageId: string,
+  preview = false
+): Promise<ReconcileResult> {
+  const page = (await notion.pages.retrieve({ page_id: pageId })) as AnyPage
+  const parent = (page as any).parent
+  const dataSourceId = parent?.data_source_id
+  if (!dataSourceId || normaliseNotionId(dataSourceId) !== BALANCE_SHEET_DATA_SOURCE_ID) {
+    throw new Error("Refusing to process a page outside TP: Balance Sheet.")
+  }
+  if ((page as any).archived || (page as any).in_trash) {
+    return { pageId, transactionDate: null, skipped: true, reason: "Row is archived or trashed.", changedFields: [] }
+  }
+  const transactionDate = getDateStart(page, "Transaction Date")
+
+  if (!transactionDate) {
+    return {
+      pageId,
+      transactionDate: null,
+      skipped: true,
+      reason: "Transaction Date is empty.",
+      changedFields: [],
+    }
+  }
+
+  if (transactionDate.slice(0, 10) > todayIsoDate()) {
+    return { pageId, transactionDate, skipped: true, reason: "Transaction Date is in the future.", changedFields: [] }
+  }
+
+  const sourceDecision = determineSource(page)
+  if (sourceDecision.kind === "skip") {
+    return {
+      pageId,
+      transactionDate,
+      skipped: true,
+      reason: sourceDecision.reason,
+      changedFields: [],
+    }
+  }
+
+  if (!Number.isFinite(sourceDecision.sourceAmount)) {
+    throw new Error("FX source amount must be finite.")
+  }
+
+  const prices = await calculateAllPrices(
+    notion,
+    transactionDate,
+    sourceDecision.sourceCurrency,
+    sourceDecision.sourceAmount
+  )
+
+  const rateUsed =
+    sourceDecision.sourceCurrency === "IDR"
+      ? 1
+      : (
+          await getBaseToIdrRate(
+            notion,
+            sourceDecision.sourceCurrency,
+            transactionDate
+          )
+        ).rate
+
+  const updateProperties: Record<string, any> = {}
+  const changedFields: string[] = []
+
+  maybeSetNumber(updateProperties, changedFields, page, "Price (GBP)", prices.GBP)
+  maybeSetNumber(updateProperties, changedFields, page, "Price (USD)", prices.USD)
+  maybeSetNumber(updateProperties, changedFields, page, "Price (EUR)", prices.EUR)
+  maybeSetNumber(updateProperties, changedFields, page, "Price (INR)", prices.INR)
+  maybeSetNumber(updateProperties, changedFields, page, "Price (IDR)", prices.IDR)
+  maybeSetSelect(
+    updateProperties,
+    changedFields,
+    page,
+    "FX currency used",
+    sourceDecision.sourceCurrency
+  )
+  maybeSetNumber(updateProperties, changedFields, page, "FX rate used", rateUsed)
+
+  if (changedFields.length > 0 && !preview) {
+    updateProperties["FX timestamp"] = {
+      date: { start: new Date().toISOString() },
+    }
+
+    await notion.pages.update({
+      page_id: pageId,
+      properties: updateProperties,
+    })
+  }
+
+  return {
+    pageId,
+    transactionDate,
+    skipped: false,
+    sourceCurrency: sourceDecision.sourceCurrency,
+    sourceAmount: sourceDecision.sourceAmount,
+    rateUsed,
+    changedFields,
+    applied: changedFields.length > 0 && !preview,
+  }
+}
+
+function determineSource(page: AnyPage): SourceDecision {
+  const fxSourceCurrency = getSelectName(page, "FX Source Currency")
+  const fxSourceAmount = getNumber(page, "FX Source Amount")
+  const existingCurrencyUsed = getSelectName(page, "FX currency used")
+  const salesRelationIds = getRelationIds(page, "Sales")
+  const tacitNetSalesIdr = getNumber(page, "Tacit Net Sales (IDR)")
+
+  if (fxSourceCurrency && fxSourceAmount !== null) {
+    return {
+      kind: "ok",
+      sourceCurrency: fxSourceCurrency,
+      sourceAmount: fxSourceAmount,
+      sourceKind: "fx-source-fields",
+    }
+  }
+
+  if (fxSourceCurrency && fxSourceAmount === null) {
+    return {
+      kind: "skip",
+      reason: "FX Source Currency is set but FX Source Amount is empty.",
+    }
+  }
+
+  if (!fxSourceCurrency && fxSourceAmount !== null) {
+    return {
+      kind: "skip",
+      reason: "FX Source Amount is set but FX Source Currency is empty.",
+    }
+  }
+
+  if (existingCurrencyUsed) {
+    const currentAmount = getStoredAmountForCurrency(page, existingCurrencyUsed)
+    if (currentAmount !== null) {
+      return {
+        kind: "ok",
+        sourceCurrency: existingCurrencyUsed,
+        sourceAmount: currentAmount,
+        sourceKind: "existing-fx-fields",
+      }
+    }
+  }
+
+  if (salesRelationIds.length > 0 && tacitNetSalesIdr !== null) {
+    return {
+      kind: "ok",
+      sourceCurrency: "IDR",
+      sourceAmount: tacitNetSalesIdr * IDR_STORAGE_DIVISOR,
+      sourceKind: "sales-net-idr",
+    }
+  }
+
+  const inferred = inferSingleLegacySource(page)
+  if (inferred) {
+    return {
+      kind: "ok",
+      sourceCurrency: inferred.currency,
+      sourceAmount: inferred.amount,
+      sourceKind: "single-populated-price",
+    }
+  }
+
+  return {
+    kind: "skip",
+    reason:
+      "No authoritative FX source was found. Expected FX Source Currency + FX Source Amount, an existing FX currency used + matching price, or Sales-driven IDR.",
+  }
+}
+
+function inferSingleLegacySource(page: AnyPage) {
+  const populated = [] as Array<{ currency: SupportedCurrency; amount: number }>
+  for (const currency of [...OUTPUT_CURRENCIES, "IDR"] as SupportedCurrency[]) {
+    const amount = getStoredAmountForCurrency(page, currency)
+    if (amount !== null) {
+      populated.push({ currency, amount })
+    }
+  }
+
+  if (populated.length === 1) {
+    return populated[0]
+  }
+
+  return null
+}
+
+async function calculateAllPrices(
+  notion: Client,
+  transactionDate: string,
+  sourceCurrency: string,
+  sourceAmount: number
+) {
+  const sourceUpper = sourceCurrency.toUpperCase()
+  const idrFullAmount =
+    sourceUpper === "IDR"
+      ? sourceAmount
+      : sourceAmount * (await getBaseToIdrRate(notion, sourceUpper, transactionDate)).rate
+
+  const prices = {
+    GBP: roundCurrency(
+      idrFullAmount /
+        (await getBaseToIdrRate(notion, "GBP", transactionDate)).rate,
+      "GBP"
+    ),
+    USD: roundCurrency(
+      idrFullAmount /
+        (await getBaseToIdrRate(notion, "USD", transactionDate)).rate,
+      "USD"
+    ),
+    EUR: roundCurrency(
+      idrFullAmount /
+        (await getBaseToIdrRate(notion, "EUR", transactionDate)).rate,
+      "EUR"
+    ),
+    INR: roundCurrency(
+      idrFullAmount /
+        (await getBaseToIdrRate(notion, "INR", transactionDate)).rate,
+      "INR"
+    ),
+    IDR: roundCurrency(idrFullAmount / IDR_STORAGE_DIVISOR, "IDR"),
+  }
+
+  return prices
+}
+
+const rateCache = new Map<string, Promise<FxRateRecord>>()
+
+async function getBaseToIdrRate(
+  notion: Client,
+  base: string,
+  date: string
+): Promise<FxRateRecord> {
+  const baseUpper = base.toUpperCase()
+  if (baseUpper === QUOTE_CURRENCY) {
+    return {
+      base: QUOTE_CURRENCY,
+      quote: QUOTE_CURRENCY,
+      date,
+      rate: 1,
+      sourceUrl: "identity",
+    }
+  }
+
+  const key = buildRateKey(date, baseUpper, QUOTE_CURRENCY)
+  const cached = rateCache.get(key)
+  if (cached) {
+    return cached
+  }
+
+  const promise = (async () => {
+    const existing = await getFxRateFromStore(notion, key)
+    if (existing) {
+      return existing
+    }
+
+    const rows = await fetchFrankfurterSeries(baseUpper, [QUOTE_CURRENCY], date, date, false)
+    const row = rows.find((item) => item.quote === QUOTE_CURRENCY)
+    if (!row) {
+      throw new Error(`No FX rate returned for ${baseUpper}/${QUOTE_CURRENCY} on ${date}.`)
+    }
+    return row
+  })()
+
+  rateCache.set(key, promise)
+  return promise
+}
+
+async function getFxRateFromStore(
+  notion: Client,
+  key: string
+): Promise<FxRateRecord | null> {
+  const response = await notion.dataSources.query({
+    data_source_id: FX_RATES_DATA_SOURCE_ID,
+    result_type: "page",
+    page_size: 1,
+    filter: {
+      property: "Key",
+      rich_text: { equals: key },
+    } as any,
+  })
+
+  const page = response.results.find((result: any) => result.object === "page") as
+    | AnyPage
+    | undefined
+
+  if (!page) {
+    return null
+  }
+
+  const base = getRichText(page, "Base Currency")
+  const quote = getRichText(page, "Quote Currency")
+  const date = getDateStart(page, "Rate Date")
+  const rate = getNumber(page, "Rate")
+  const sourceUrl = getUrl(page, "Source URL") ?? ""
+
+  if (!base || !quote || !date || rate === null) {
+    return null
+  }
+
+  return {
+    base,
+    quote,
+    date,
+    rate,
+    sourceUrl,
+  }
+}
+
+async function fetchFrankfurterSeries(
+  base: string,
+  quotes: string[],
+  from: string,
+  to: string,
+  useSyncPacer = true
+): Promise<FxRateRecord[]> {
+  if (useSyncPacer) {
+    await frankfurterApi.wait()
+  } else {
+    // SDK 0.9.2 initialises declared pacers for syncs only. Tool/webhook
+    // lookups are sequential within each run; retain 400 ms request spacing
+    // without calling an uninitialised sync-only runtime pacer.
+    await new Promise<void>((resolve) => setTimeout(resolve, 400))
+  }
+
+  const params = new URLSearchParams({
+    base,
+    quotes: quotes.join(","),
+    from,
+    to,
+  })
+  const sourceUrl = `https://api.frankfurter.dev/v2/rates?${params.toString()}`
+  const response = await fetch(sourceUrl)
+
+  if (!response.ok) {
+    throw new Error(
+      `Frankfurter request failed: ${response.status} ${response.statusText}`
+    )
+  }
+
+  const payload = (await response.json()) as Array<any>
+  if (!Array.isArray(payload)) {
+    throw new Error(`Unexpected Frankfurter payload: ${truncateJson(payload)}`)
+  }
+
+  return payload.map((item) => ({
+    base: String(item.base ?? base).toUpperCase(),
+    quote: String(item.quote ?? quotes[0]).toUpperCase(),
+    date: String(item.date),
+    rate: Number(item.rate),
+    sourceUrl,
+  }))
+}
+
+async function listBalanceSheetPageBatch(
+  notion: Client,
+  limit: number,
+  startCursor: string | null
+): Promise<{ pageIds: string[]; hasMore: boolean; nextCursor: string | null }> {
+  const response = await notion.dataSources.query({
+    data_source_id: BALANCE_SHEET_DATA_SOURCE_ID,
+    result_type: "page",
+    page_size: limit,
+    ...(startCursor ? { start_cursor: startCursor } : {}),
+    // Stable ordering: applying outputs must not reorder the scan.
+    sorts: [{ timestamp: "created_time", direction: "ascending" }],
+  })
+  return {
+    pageIds: response.results.filter((result: any) => result.object === "page").map((result: any) => result.id),
+    hasMore: response.has_more,
+    nextCursor: response.next_cursor,
+  }
+}
+
+function getNotionClient(context?: { notion?: Client }) {
+  const token = process.env.NOTION_API_TOKEN
+  if (token) {
+    return new Client({ auth: token })
+  }
+  if (context?.notion) {
+    return context.notion
+  }
+  throw new Error("NOTION_API_TOKEN is not configured.")
+}
+
+function maybeSetNumber(
+  updateProperties: Record<string, any>,
+  changedFields: string[],
+  page: AnyPage,
+  propertyName: string,
+  nextValue: number
+) {
+  const current = getNumber(page, propertyName)
+  if (!numbersEqual(current, nextValue)) {
+    updateProperties[propertyName] = { number: nextValue }
+    changedFields.push(propertyName)
+  }
+}
+
+function maybeSetSelect(
+  updateProperties: Record<string, any>,
+  changedFields: string[],
+  page: AnyPage,
+  propertyName: string,
+  nextValue: string
+) {
+  const current = getSelectName(page, propertyName)
+  if (current !== nextValue) {
+    updateProperties[propertyName] = { select: { name: nextValue } }
+    changedFields.push(propertyName)
+  }
+}
+
+function getStoredAmountForCurrency(
+  page: AnyPage,
+  currency: string
+): number | null {
+  const current = getNumber(page, `Price (${currency.toUpperCase()})`)
+  if (current === null) {
+    return null
+  }
+
+  return currency.toUpperCase() === "IDR"
+    ? current * IDR_STORAGE_DIVISOR
+    : current
+}
+
+function getRichText(page: AnyPage, propertyName: string) {
+  const property = page.properties?.[propertyName]
+  if (!property) {
+    return null
+  }
+  if (property.type === "rich_text") {
+    return property.rich_text?.map((item: any) => item.plain_text ?? "").join("") || null
+  }
+  if (property.type === "title") {
+    return property.title?.map((item: any) => item.plain_text ?? "").join("") || null
+  }
+  return null
+}
+
+function getUrl(page: AnyPage, propertyName: string) {
+  const property = page.properties?.[propertyName]
+  return property?.type === "url" ? property.url ?? null : null
+}
+
+function getDateStart(page: AnyPage, propertyName: string) {
+  const property = page.properties?.[propertyName]
+  return property?.type === "date" ? property.date?.start ?? null : null
+}
+
+function getNumber(page: AnyPage, propertyName: string) {
+  const property = page.properties?.[propertyName]
+  return property?.type === "number" ? property.number ?? null : null
+}
+
+function getSelectName(page: AnyPage, propertyName: string) {
+  const property = page.properties?.[propertyName]
+  if (!property) {
+    return null
+  }
+  if (property.type === "select") {
+    return property.select?.name ?? null
+  }
+  if (property.type === "status") {
+    return property.status?.name ?? null
+  }
+  return null
+}
+
+function getRelationIds(page: AnyPage, propertyName: string) {
+  const property = page.properties?.[propertyName]
+  if (property?.type !== "relation" || !Array.isArray(property.relation)) {
+    return []
+  }
+  return property.relation
+    .map((item: any) => item.id)
+    .filter((item: any) => typeof item === "string")
+    .map(normaliseNotionId)
+}
+
+function extractBalanceSheetPageIds(body: any): string[] {
+  // Native automation payloads contain metadata UUIDs in source. Those are
+  // not pages. The triggering page lives in data.id and takes precedence.
+  const triggeringId = body?.data?.id ?? body?.page?.id ??
+    (body?.object === "page" ? body?.id : undefined)
+  if (typeof triggeringId === "string") {
+    const id = tryParsePageId(triggeringId)
+    if (id) return [id]
+  }
+  const ids = new Set<string>()
+  const selfReference = body?.["TP: Balance Sheet [Self]"] ??
+    body?.tpBalanceSheetSelf ?? body?.data?.properties?.["TP: Balance Sheet [Self]"]
+  if (selfReference != null) collectPossiblePageIds(selfReference, ids)
+  if (ids.size === 0) {
+    // Explicit manual payload fields only; never recurse through event metadata.
+    for (const value of [body?.pageId, body?.page_id, body?.pageIdOrUrl, body?.pageUrl, body?.page]) {
+      if (value != null) collectPossiblePageIds(value, ids)
+    }
+  }
+  return [...ids]
+}
+
+function collectPossiblePageIds(value: any, ids: Set<string>) {
+  if (value == null) {
+    return
+  }
+
+  if (typeof value === "string") {
+    const id = tryParsePageId(value)
+    if (id) {
+      ids.add(id)
+    }
+    return
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectPossiblePageIds(item, ids)
+    }
+    return
+  }
+
+  if (typeof value === "object") {
+    if (typeof value.id === "string") {
+      const id = tryParsePageId(value.id)
+      if (id) {
+        ids.add(id)
+      }
+    }
+    if (typeof value.url === "string") {
+      const id = tryParsePageId(value.url)
+      if (id) {
+        ids.add(id)
+      }
+    }
+    if (typeof value.pageId === "string") {
+      const id = tryParsePageId(value.pageId)
+      if (id) {
+        ids.add(id)
+      }
+    }
+    for (const nested of Object.values(value)) {
+      collectPossiblePageIds(nested, ids)
+    }
+  }
+}
+
+function parsePageIdOrUrl(value: string) {
+  const parsed = tryParsePageId(value)
+  if (!parsed) {
+    throw new Error(`Could not parse a Notion page ID from: ${value}`)
+  }
+  return parsed
+}
+
+function tryParsePageId(value: string) {
+  const direct = value.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/)?.[0]
+  if (direct) {
+    return direct.toLowerCase()
+  }
+
+  const compact = value.match(/[0-9a-fA-F]{32}/)?.[0]
+  if (compact) {
+    return normaliseNotionId(compact)
+  }
+
+  return null
+}
+
+function normaliseNotionId(value: string) {
+  const compact = value.replace(/-/g, "").toLowerCase()
+  if (!/^[0-9a-f]{32}$/.test(compact)) {
+    throw new Error(`Invalid Notion ID: ${value}`)
+  }
+  return `${compact.slice(0, 8)}-${compact.slice(8, 12)}-${compact.slice(12, 16)}-${compact.slice(16, 20)}-${compact.slice(20)}`
+}
+
+function numbersEqual(left: number | null, right: number | null) {
+  if (left === null && right === null) {
+    return true
+  }
+  if (left === null || right === null) {
+    return false
+  }
+  return Math.abs(left - right) < FLOAT_EPSILON
+}
+
+function roundCurrency(value: number, currency: string) {
+  if (currency === "IDR") {
+    return roundTo(value, 3)
+  }
+  return roundTo(value, 2)
+}
+
+function roundTo(value: number, places: number) {
+  const factor = 10 ** places
+  return Math.round((value + Number.EPSILON) * factor) / factor
+}
+
+function buildRateKey(date: string, base: string, quote: string) {
+  return `${date}|${base}|${quote}`
+}
+
+function shiftIsoDate(date: string, days: number) {
+  const utc = new Date(`${date}T00:00:00Z`)
+  utc.setUTCDate(utc.getUTCDate() + days)
+  return utc.toISOString().slice(0, 10)
+}
+
+function todayIsoDate() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value))
+}
+
+function getHeader(headers: Record<string, string>, key: string) {
+  const expected = key.toLowerCase()
+  for (const [headerKey, headerValue] of Object.entries(headers ?? {})) {
+    if (headerKey.toLowerCase() === expected) {
+      return headerValue
+    }
+  }
+  return null
+}
+
+function truncateJson(value: unknown, maxLength = 400) {
+  const json = JSON.stringify(value)
+  if (!json) {
+    return ""
+  }
+  return json.length > maxLength ? `${json.slice(0, maxLength)}…` : json
+}
