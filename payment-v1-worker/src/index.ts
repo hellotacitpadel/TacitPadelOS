@@ -6,15 +6,246 @@ import { j } from "@notionhq/workers/schema-builder"
 const worker = new Worker()
 export default worker
 
-type Product = "Private Lesson" | "Match with Coach" | "Clinic" | "Coaches Academy" | "Play with Coach" | "Player Academy"
+type Product =
+	| "Private Lesson"
+	| "Match with Coach"
+	| "Clinic"
+	| "Coaches Academy"
+	| "Play with Coach"
+	| "Player Academy"
+	| "Open Lessons"
+	| "Hybrid Lessons"
+	| "Tacit Socials"
+	| "Mini Tournaments"
+	| "Beat the Coach"
+	| "Life Academy"
+	| "Overseas Clubs"
 type EventStatus = "Inbox" | "Rearrange" | "Pending" | "Confirmed" | "Cancelled"
 type SaleStatus = "Confirmed" | "Cancelled" | "Late Cancellation" | "No-Show"
 type SaleRole = "Revenue" | "Cost"
 
 const round = (value: number) => Math.round(value)
+/* Charged amounts keep rupiah precision inside the thousands convention: 247.5 = Rp247,500.
+   Fractional price-list rates (e.g. Instructor 1:4 = 123.75) must not be rounded to whole thousands. */
+const roundIdr = (value: number) => Math.round(value * 1000) / 1000
 const jsonOutput = <T>(value: T): any => JSON.parse(JSON.stringify(value))
 const paymentV1WebhookHeader = "x-payment-v1-secret"
 const balanceSheetDataSourceId = "267afdfb-c3c7-81d9-bc0f-000bb3cd7f70"
+
+/* ── Naming convention: club acronym library ── */
+const clubAcronymMap: Record<string, string> = {
+	"WePadl": "WEP",
+	"wePADL": "WEP",
+	"Elite Padel Club: Puri": "ELP-P",
+	"Elite Padel Club: Fatmawati": "ELP-F",
+	"Elite Padel Academy: Fatmawati": "ELP-F",
+	"Elite Padel Club: Cempaka Putih": "ELP-C",
+	"Elite Padel Club: Arandra": "ELP-A",
+	"The MVP Padel": "MVP",
+	"HiPi": "HIP",
+	"HiPi Padel Kendari": "HIP",
+	"Royale": "ROP",
+	"The Royale Padel": "ROP",
+	"Padel Parq": "PPP",
+	"Padel Parq Pluit": "PPP",
+	"Casa de Padel": "CDP",
+	"Casa de Padel Kendari": "CDP",
+	"Casa de Padel Prestigio": "CDP",
+	"Filari": "FIL",
+	"Filari Padel": "FIL",
+	"Nord": "NOP",
+	"Nord Social Club": "NOP",
+	"Raara": "RAP",
+	"Raara House": "RAP",
+	"Uno": "UNP",
+	"Uno Padel": "UNP",
+	"Uno Padel Kendari": "UNP",
+	"Serve": "SEP",
+	"Serve Padel Club": "SEP",
+	"PadelHood": "PAH",
+	"Tom's Padel": "TOP",
+}
+
+const resolveOrgAcronym = (orgName: string): string => {
+	const trimmed = orgName.trim()
+	return clubAcronymMap[trimmed] ?? clubAcronymMap[trimmed.replace(/\s+$/, "")] ?? "???"
+}
+
+const resolvePersonName = async (notion: Client, personId: string): Promise<string> => {
+	try {
+		const raw = await notion.pages.retrieve({ page_id: personId })
+		if ("properties" in raw) {
+			const name = textValue(property(raw as unknown as NotionPage, "Name"))
+			if (name) return name.trim()
+		}
+	} catch { /* fall through */ }
+	return "(unknown)"
+}
+
+const resolveOrgName = async (notion: Client, orgId: string): Promise<string> => {
+	try {
+		const raw = await notion.pages.retrieve({ page_id: orgId })
+		if ("properties" in raw) {
+			const org = raw as unknown as NotionPage
+			for (const key of ["Name", "Organisation"]) {
+				const val = property(org, key)
+				if (val?.type === "title") {
+					const name = textValue(val)
+					if (name) return name.trim()
+				}
+			}
+		}
+	} catch { /* fall through */ }
+	return ""
+}
+
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+const formatScheduledDate = (isoDate: string): string => {
+	try {
+		const dt = new Date(isoDate)
+		// Notion stores scheduled dates in the venue's local timezone; the ISO string
+		// already carries the correct offset.  Use the parts directly so we don't
+		// double-shift.
+		const parts = isoDate.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/)
+		if (parts) {
+			const [, , mon, day, hh, mm] = parts
+			const monthIdx = parseInt(mon, 10) - 1
+			const yearShort = parts[1].slice(2)
+			return `${day}${MONTH_ABBR[monthIdx]}${yearShort} ${hh}:${mm}`
+		}
+		// Fallback: date-only (no time)
+		const dateOnly = isoDate.slice(0, 10)
+		const [y, m, d] = dateOnly.split("-")
+		return `${d}${MONTH_ABBR[parseInt(m, 10) - 1]}${y.slice(2)}`
+	} catch {
+		return ""
+	}
+}
+
+/* ── Naming convention: shared helpers ── */
+
+const resolveEventVenue = async (notion: Client, event: NotionPage): Promise<string> => {
+	const orgIds = relationIds(property(event, "Organisations"))
+	for (const oid of orgIds) {
+		const orgName = await resolveOrgName(notion, oid)
+		if (orgName && orgName !== "Tacit Padel") {
+			return resolveOrgAcronym(orgName)
+		}
+	}
+	return "???"
+}
+
+const resolveEventCoach = async (notion: Client, event: NotionPage): Promise<string> => {
+	const coachIds = relationIds(property(event, "Coaches"))
+	return coachIds.length > 0 ? await resolvePersonName(notion, coachIds[0]) : "(unknown)"
+}
+
+const resolveEventCapacity = (event: NotionPage): number => {
+	const cap = numberValue(property(event, "Capacity"))
+	return cap && cap >= 1 ? cap : 1
+}
+
+const resolveEventScheduled = (event: NotionPage): string => {
+	const sched = dateValue(property(event, "Scheduled"))
+	return sched?.start ? formatScheduledDate(sched.start) : ""
+}
+
+/* Build an Event title per the naming convention.
+   PL:       PL · 1:N · [coach] · [venue] · DDMonYY HH:MM
+   OL/HL:    OL/HL · 1:N · [coach] · [venue] · DDMonYY HH:MM
+   PwC:      PwC · [coach] · [venue] · DDMonYY HH:MM
+   Clinic:   CL · [venue] · DDMonYY HH:MM
+   CA:       CA · [venue] · DDMonYY · U# (session — unit derived from Event Log or sequence)
+   PA:       PA · [venue] · [player] (individual) — PA parent/group handled by Basil
+*/
+const buildEventTitle = async (notion: Client, event: NotionPage, product: string): Promise<string> => {
+	const venue = await resolveEventVenue(notion, event)
+	const dtStr = resolveEventScheduled(event)
+
+	if (product === "Private Lesson") {
+		const coach = await resolveEventCoach(notion, event)
+		const ratio = `1:${resolveEventCapacity(event)}`
+		return `PL · ${ratio} · ${coach} · ${venue} · ${dtStr}`.replace(/ · $/, "")
+	}
+	if (product === "Open Lessons") {
+		const coach = await resolveEventCoach(notion, event)
+		const ratio = `1:${resolveEventCapacity(event)}`
+		return `OL · ${ratio} · ${coach} · ${venue} · ${dtStr}`.replace(/ · $/, "")
+	}
+	if (product === "Hybrid Lessons") {
+		const coach = await resolveEventCoach(notion, event)
+		const ratio = `1:${resolveEventCapacity(event)}`
+		return `HL · ${ratio} · ${coach} · ${venue} · ${dtStr}`.replace(/ · $/, "")
+	}
+	if (product === "Play with Coach") {
+		const coach = await resolveEventCoach(notion, event)
+		return `PwC · ${coach} · ${venue} · ${dtStr}`.replace(/ · $/, "")
+	}
+	if (product === "Clinic") {
+		return `CL · ${venue} · ${dtStr}`.replace(/ · $/, "")
+	}
+	// Fallback: return existing title
+	return textValue(property(event, "Event")) || "Payment V1 Sale"
+}
+
+/* Build a Sale title per the naming convention.
+   The Sale reuses the session tokens and swaps the coach/ratio for the customer.
+   PL/OL/HL/PwC/Clinic: PRODUCT · [customer] · [venue] · DDMonYY HH:MM
+   CA: CA · [venue] · [period] · [customer]  (period derived from Event Log or month)
+*/
+const buildSaleTitle = async (
+	notion: Client,
+	event: NotionPage,
+	product: string,
+	studentPageIds: string[],
+): Promise<string> => {
+	const customer = studentPageIds.length > 0
+		? await resolvePersonName(notion, studentPageIds[0])
+		: "(unknown)"
+	const venue = await resolveEventVenue(notion, event)
+	const dtStr = resolveEventScheduled(event)
+
+	if (product === "Private Lesson") {
+		return `PL · ${customer} · ${venue} · ${dtStr}`.replace(/ · $/, "")
+	}
+	if (product === "Open Lessons") {
+		return `OL · ${customer} · ${venue} · ${dtStr}`.replace(/ · $/, "")
+	}
+	if (product === "Hybrid Lessons") {
+		return `HL · ${customer} · ${venue} · ${dtStr}`.replace(/ · $/, "")
+	}
+	if (product === "Play with Coach") {
+		return `PwC · ${customer} · ${venue} · ${dtStr}`.replace(/ · $/, "")
+	}
+	if (product === "Clinic") {
+		return `CL · ${customer} · ${venue} · ${dtStr}`.replace(/ · $/, "")
+	}
+	// Fallback: reuse Event title
+	return textValue(property(event, "Event")) || "Payment V1 Sale"
+}
+
+/* Check if an Event title already follows the convention for its product. */
+const isConventionTitle = (title: string, product: string): boolean => {
+	const dateTail = ` · \\d{2}[A-Z][a-z]{2}\\d{2} \\d{2}:\\d{2}$`
+	if (product === "Private Lesson") {
+		return new RegExp(`^PL · 1:\\d+ · .+ · [A-Z]{2,}(-[A-Z])?${dateTail}`).test(title)
+	}
+	if (product === "Open Lessons") {
+		return new RegExp(`^OL · 1:\\d+ · .+ · [A-Z]{2,}(-[A-Z])?${dateTail}`).test(title)
+	}
+	if (product === "Hybrid Lessons") {
+		return new RegExp(`^HL · 1:\\d+ · .+ · [A-Z]{2,}(-[A-Z])?${dateTail}`).test(title)
+	}
+	if (product === "Play with Coach") {
+		return new RegExp(`^PwC · .+ · [A-Z]{2,}(-[A-Z])?${dateTail}`).test(title)
+	}
+	if (product === "Clinic") {
+		return new RegExp(`^CL · [A-Z]{2,}(-[A-Z])?${dateTail}`).test(title)
+	}
+	// Unknown product: assume it's fine
+	return true
+}
 
 const hasValidPaymentV1WebhookSecret = (headers: Record<string, string>) => {
 	const expected = process.env.PAYMENT_V1_WEBHOOK_SECRET
@@ -254,7 +485,7 @@ const qualifyingWeeklyHours = async (
 				isoWeek(start) === referenceWeek &&
 				(isReferenceEvent || textValue(property(event, "Status")) === "Confirmed") &&
 				relationIds(property(event, "Sub Event")).length === 0 &&
-				["Private Lesson", "Clinic", "Match with Coach", "Play with Coach"].includes(product) &&
+				["Private Lesson", "Open Lessons", "Hybrid Lessons", "Clinic", "Match with Coach", "Play with Coach", "Beat the Coach", "Tacit Socials", "Mini Tournaments", "Player Academy", "Overseas Clubs"].includes(product) &&
 				hours !== null
 			if (qualifies && hours !== null) total += hours
 		}
@@ -267,11 +498,27 @@ const priceFieldFor = (
 	coachLevel: string,
 	studentCount: number
 ): string | null => {
-	const ratio = `1:${studentCount}`
+	/* v12: Hybrid Lessons always priced at 1:4 regardless of headcount (min 5, max 8).
+	   Open Lessons: min 1:2, max 1:4. Private Lesson: min 1:1, max 1:4. */
+	const ratio = product === "Hybrid Lessons" ? "1:4" : `1:${studentCount}`
 	if (product === "Private Lesson") {
 		return ["Head Coach", "Senior Coach", "Coach", "Instructor", "Trainee"].includes(
 			coachLevel
 		) && studentCount >= 1 && studentCount <= 4
+			? `${coachLevel} ${ratio} (IDR PP)`
+			: null
+	}
+	if (product === "Open Lessons") {
+		return ["Head Coach", "Senior Coach", "Coach", "Instructor", "Trainee"].includes(
+			coachLevel
+		) && studentCount >= 2 && studentCount <= 4
+			? `${coachLevel} ${ratio} (IDR PP)`
+			: null
+	}
+	if (product === "Hybrid Lessons") {
+		return ["Head Coach", "Senior Coach", "Coach", "Instructor", "Trainee"].includes(
+			coachLevel
+		) && studentCount >= 5 && studentCount <= 8
 			? `${coachLevel} ${ratio} (IDR PP)`
 			: null
 	}
@@ -286,7 +533,8 @@ const priceFieldFor = (
 			? `Match with Coach ${prefix} (IDR PP)`
 			: null
 	}
-	if (product === "Coaches Academy") return "Coaches Course (IDR PP)"
+	if (product === "Coaches Academy") return "Coaches Academy (IDR PP)"
+	if (product === "Overseas Clubs") return null
 	return null
 }
 
@@ -294,6 +542,7 @@ const priceFieldFor = (
 type CompensationInput = {
 	product: Product
 	isDirector: boolean
+	coachLevel: string | null
 	weeklyHours: number
 	totalListPriceIdr: number
 	privateLessonRate: number
@@ -302,6 +551,16 @@ type CompensationInput = {
 	baseRateIdrPerHour: number
 	onCourtHours: number
 	coachCount: number
+}
+
+/* Parse a percentage select value like "45%" from a rollup array → 0.45 */
+const percentSelectValue = (value: unknown): number | null => {
+	const arr = (value as { rollup?: { array?: unknown[] } })?.rollup?.array
+	if (!Array.isArray(arr) || arr.length === 0) return null
+	const sel = (arr[0] as { select?: { name?: string } })?.select?.name
+	if (!sel || typeof sel !== "string" || !sel.endsWith("%")) return null
+	const n = parseFloat(sel.slice(0, -1))
+	return Number.isFinite(n) ? n / 100 : null
 }
 
 const calculateCompensation = (input: CompensationInput) => {
@@ -319,14 +578,26 @@ const calculateCompensation = (input: CompensationInput) => {
 		throw new Error("coachCount must be a positive finite number.")
 	}
 	if (input.isDirector) return { feeIdr: 0, basis: "Director" as const }
+	/* v12: Trainees are capped at 10 coaching hours per week and paid base rate only.
+	   The 12,000 trainee-phase earning opportunity is a CA-specific policy decision
+	   still pending; it is not a guaranteed per-session or monthly stipend. */
+	if (input.coachLevel === "Trainee") {
+		const priorHours = Math.max(0, input.weeklyHours - input.onCourtHours)
+		const billableHours = Math.min(input.onCourtHours, Math.max(0, 10 - priorHours))
+		return { feeIdr: round(input.baseRateIdrPerHour * billableHours), basis: "Trainee base rate (10h weekly cap)" as const }
+	}
 	switch (input.product) {
 		case "Private Lesson":
+		case "Open Lessons":
+		case "Hybrid Lessons":
 			return input.weeklyHours < 20
 				? { feeIdr: 0, basis: "Below threshold" as const }
 				: { feeIdr: round(input.privateLessonRate * input.totalListPriceIdr), basis: "Percentage" as const }
 		case "Match with Coach":
 			return { feeIdr: round(input.baseRateIdrPerHour * 1.75 * input.onCourtHours), basis: "Match multiplier" as const }
-		case "Play with Coach": {
+		case "Play with Coach":
+		case "Beat the Coach":
+		case "Overseas Clubs": {
 			if (input.weeklyHours < 20) return { feeIdr: 0, basis: "Below threshold" as const }
 			const baseFloor = input.baseRateIdrPerHour * input.onCourtHours
 			const percentage = input.privateLessonRate * (input.totalListPriceIdr / input.coachCount)
@@ -342,10 +613,19 @@ const calculateCompensation = (input: CompensationInput) => {
 				? { feeIdr: round(baseFloor), basis: "Base-rate floor" as const }
 				: { feeIdr: round(percentage), basis: "Percentage" as const }
 		}
+		/* v12: PA counts toward the 20-hour threshold (was excluded in v11.3) */
 		case "Player Academy":
-			return { feeIdr: round(input.playerAcademyRate * input.totalListPriceIdr), basis: "Academy percentage" as const }
+			return input.weeklyHours < 20
+				? { feeIdr: 0, basis: "Below threshold" as const }
+				: { feeIdr: round(input.playerAcademyRate * input.totalListPriceIdr), basis: "Academy percentage" as const }
 		case "Coaches Academy":
 			return { feeIdr: round(input.coachesAcademyRate * input.totalListPriceIdr), basis: "Academy percentage" as const }
+		/* v12: TS/MT count toward threshold but pay no above-threshold fee (voucher pool) */
+		case "Tacit Socials":
+		case "Mini Tournaments":
+			return { feeIdr: 0, basis: "Voucher pool — no above-threshold payment" as const }
+		default:
+			return { feeIdr: null, basis: "Unpriced product" as const }
 	}
 }
 
@@ -369,22 +649,68 @@ const findBalanceSheetIdForSale = async (
 	return result.results[0]?.id ?? null
 }
 
+/* The Sale→Events dual backlink into the Event's Sales relation has missed a sync in
+   production. Capacity confirmation iterates Event.Sales, so a missing backlink makes a
+   paid place invisible. Write the parent side explicitly after creating/reusing Sales. */
+const ensureEventSalesLinked = async (
+	notion: Client,
+	eventPageId: string,
+	saleIds: Array<string | null>
+): Promise<void> => {
+	const wanted = saleIds.filter((id): id is string => typeof id === "string" && id.length > 0)
+	if (!wanted.length) return
+	const raw = await notion.pages.retrieve({ page_id: eventPageId })
+	if (!("properties" in raw)) return
+	const existing = relationIds(property(raw as NotionPage, "Sales"))
+	const merged = [...existing, ...wanted.filter((id) => !existing.includes(id))]
+	if (merged.length === existing.length) return
+	await notion.pages.update({
+		page_id: eventPageId,
+		properties: { Sales: { relation: merged.map((id) => ({ id })) } } as never,
+	})
+}
+
+/* The paired Sale↔Sale backlink (Revenue.Group → Cost) does not reliably sync the
+   Cost's Item children list on API writes, so merge it explicitly. */
+const ensureCostSaleItemsLinked = async (
+	notion: Client,
+	costSaleId: string | null,
+	revenueSaleIds: Array<string | null>
+): Promise<void> => {
+	const wanted = revenueSaleIds.filter((id): id is string => typeof id === "string" && id.length > 0)
+	if (!costSaleId || !wanted.length) return
+	const raw = await notion.pages.retrieve({ page_id: costSaleId })
+	if (!("properties" in raw)) return
+	const existing = relationIds(property(raw as NotionPage, "Item"))
+	const merged = [...existing, ...wanted.filter((id) => !existing.includes(id))]
+	if (merged.length === existing.length) return
+	await notion.pages.update({
+		page_id: costSaleId,
+		properties: { Item: { relation: merged.map((id) => ({ id })) } } as never,
+	})
+}
+
 const confirmEventIfPaidCapacity = async (notion: Client, eventPageId: string) => {
 	// The Event↔Sale and Sale↔Balance Sheet inverse relations can lag immediately
 	// after this Worker creates the records. Re-read briefly before deciding that
 	// capacity is not met; otherwise a valid payment is left in Processing.
-	let last = { paidAttendeeCount: 0, capacity: null as number | null }
+	let last = { paidAttendeeCount: 0, capacity: null as number | null, paidStudentIds: [] as string[] }
 	for (let attempt = 0; attempt < 4; attempt += 1) {
 		const rawEvent = await notion.pages.retrieve({ page_id: eventPageId })
 		if (!("properties" in rawEvent)) throw new Error("Event could not be re-read for capacity confirmation.")
 		const event = rawEvent as unknown as NotionPage
+		/* OL/HL: Capacity is the class-size ceiling (OL max 4, HL max 8); confirmation
+		   fires when the BOOKED group — the Event's Students — is fully paid, not when
+		   the ceiling fills. Other products keep the capacity-based trigger. */
 		const declaredCapacity = numberValue(property(event, "Capacity"))
 		const linkedStudents = relationIds(property(event, "Students"))
-		const capacity = declaredCapacity !== null && declaredCapacity >= 1 && Number.isInteger(declaredCapacity)
-			? declaredCapacity
-			: linkedStudents.length
+		const bookedGroupProduct = ["Open Lessons", "Hybrid Lessons"].includes(textValue(property(event, "Event Type")))
+		const capacity = bookedGroupProduct && linkedStudents.length >= 1 ? linkedStudents.length
+			: declaredCapacity !== null && declaredCapacity >= 1 && Number.isInteger(declaredCapacity)
+				? declaredCapacity
+				: linkedStudents.length
 		const paid = new Set<string>()
-		if (capacity < 1) return { confirmed: false, paidAttendeeCount: 0, capacity: null, reason: "no-attendees" }
+		if (capacity < 1) return { confirmed: false, paidAttendeeCount: 0, capacity: null, paidStudentIds: [], reason: "no-attendees" }
 		for (const saleId of relationIds(property(event, "Sales"))) {
 			const rawSale = await notion.pages.retrieve({ page_id: saleId })
 			if (!("properties" in rawSale)) continue
@@ -397,15 +723,15 @@ const confirmEventIfPaidCapacity = async (notion: Client, eventPageId: string) =
 				relationIds(property(sale, "Balance Sheet")).length === 1
 			if (eligible) for (const studentId of relationIds(property(sale, "Students"))) paid.add(studentId)
 		}
-		last = { paidAttendeeCount: paid.size, capacity }
+		last = { paidAttendeeCount: paid.size, capacity, paidStudentIds: [...paid] }
 		if (paid.size === capacity) {
 			const wasPending = ["Pending", "Payment Processing"].includes(textValue(property(event, "Status")))
 			if (wasPending) await notion.pages.update({ page_id: eventPageId, properties: { Status: { status: { name: "Confirmed" } } } })
-			return { confirmed: true, paidAttendeeCount: paid.size, capacity, reason: null }
+			return { confirmed: true, paidAttendeeCount: paid.size, capacity, paidStudentIds: [...paid], reason: null }
 		}
 		if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 750))
 	}
-	return { confirmed: false, paidAttendeeCount: last.paidAttendeeCount, capacity: last.capacity, reason: "capacity-not-met" }
+	return { confirmed: false, paidAttendeeCount: last.paidAttendeeCount, capacity: last.capacity, paidStudentIds: last.paidStudentIds, reason: "capacity-not-met" }
 }
 
 worker.tool("derivePaymentV1Canary", {
@@ -414,7 +740,7 @@ worker.tool("derivePaymentV1Canary", {
 		"No-write calculator for the proposed Payment V1 release path. Validates one fully supplied fixture and returns an 18-step trace. It never creates, updates, or queries Notion records.",
 	schema: j.object({
 		operationKey: j.string().describe("Stable idempotency key for the proposed operation."),
-		product: j.enum("Private Lesson", "Match with Coach", "Clinic", "Coaches Academy", "Play with Coach", "Player Academy").describe("Booked product."),
+		product: j.enum("Private Lesson", "Match with Coach", "Clinic", "Coaches Academy", "Play with Coach", "Player Academy", "Open Lessons", "Hybrid Lessons", "Tacit Socials", "Mini Tournaments", "Beat the Coach", "Life Academy", "Overseas Clubs").describe("Booked product."),
 		eventStatus: j.enum("Inbox", "Rearrange", "Pending", "Confirmed", "Cancelled").describe("Current Event status."),
 		saleStatus: j.enum("Confirmed", "Cancelled", "Late Cancellation", "No-Show").describe("Current Sale status."),
 		saleRole: j.enum("Revenue", "Cost").describe("Revenue for a paid place; Cost for the single shared settlement row."),
@@ -442,16 +768,16 @@ worker.tool("derivePaymentV1Canary", {
 		const isConfirmedEligible = input.eventStatus === "Confirmed" && input.saleStatus !== "Cancelled"
 		const financialReleaseReady = isConfirmedEligible || isPaidPendingRevenueEligible || isPaidPendingSharedCostEligible
 		const financialPricingHours = input.scheduledHours
-		const usesHours = input.product === "Private Lesson" || input.product === "Clinic"
+		const usesHours = input.product === "Private Lesson" || input.product === "Clinic" || input.product === "Open Lessons" || input.product === "Hybrid Lessons" || input.product === "Overseas Clubs"
 		const canReleaseRevenue = financialReleaseReady && isRevenue
-		const coachingListValue = canReleaseRevenue ? round(input.studentCount * input.resolvedCoachingRateIdr * (usesHours ? financialPricingHours : 1)) : 0
-		const customerGrossValue = canReleaseRevenue ? round(input.studentCount * input.finalChargedPricePerStudentIdr * (usesHours ? financialPricingHours : 1)) : 0
-		const academyFees = canReleaseRevenue ? round(coachingListValue * (1 - input.sharedDiscountPercent)) : 0
+		const coachingListValue = canReleaseRevenue ? roundIdr(input.studentCount * input.resolvedCoachingRateIdr * (usesHours ? financialPricingHours : 1)) : 0
+		const customerGrossValue = canReleaseRevenue ? roundIdr(input.studentCount * input.finalChargedPricePerStudentIdr * (usesHours ? financialPricingHours : 1)) : 0
+		const academyFees = canReleaseRevenue ? roundIdr(coachingListValue * (1 - input.sharedDiscountPercent)) : 0
 		const courtRental = !financialReleaseReady || isRevenue || input.product === "Coaches Academy" || input.revenueScope === "Combined" || input.courtHourlyRateIdr === null
 			? 0
-			: round(financialPricingHours * input.courtHourlyRateIdr)
+			: roundIdr(financialPricingHours * input.courtHourlyRateIdr)
 		const clinicCourtContribution = canReleaseRevenue && input.product === "Clinic"
-			? round(input.studentCount * (input.finalChargedPricePerStudentIdr - input.resolvedCoachingRateIdr) * financialPricingHours)
+			? roundIdr(input.studentCount * (input.finalChargedPricePerStudentIdr - input.resolvedCoachingRateIdr) * financialPricingHours)
 			: 0
 		const sharedCostCourtContribution = financialReleaseReady && isCost
 			? Math.max(courtRental - input.linkedRevenueCourtContributionIdr, 0)
@@ -464,7 +790,7 @@ worker.tool("derivePaymentV1Canary", {
 		if (usesHours && input.scheduledHours <= 0) issues.push("Scheduled hours must be greater than zero for this hourly-priced product.")
 		if (input.resolvedCoachingRateIdr < 0 || input.finalChargedPricePerStudentIdr < 0) issues.push("Prices cannot be negative.")
 		if (input.sharedDiscountPercent < 0 || input.sharedDiscountPercent > 1) issues.push("Shared discount must be between 0 and 1.")
-		if (input.product === "Player Academy" && input.isV1Route) issues.push("Player Academy is fail-closed for Payment V1.")
+		if ((input.product === "Player Academy" || input.product === "Life Academy") && input.isV1Route) issues.push("Player Academy and Life Academy are fail-closed for Payment V1.")
 		if (input.eventStatus === "Cancelled") issues.push("Cancelled Events cannot release financial outputs.")
 		if (input.saleStatus === "Cancelled") issues.push("Cancelled Sales cannot release financial outputs.")
 		if (input.product === "Clinic" && input.finalChargedPricePerStudentIdr < input.resolvedCoachingRateIdr) issues.push("Clinic customer price is below its resolved coaching rate.")
@@ -516,8 +842,9 @@ worker.tool("previewPaymentV1Compensation", {
 	description: "No-write parity calculator inside the Payment V1 Worker. It mirrors the live compensation branches for one verified coach-event input set and returns no Notion mutation.",
 	hints: { readOnlyHint: true },
 	schema: j.object({
-		product: j.enum("Private Lesson", "Match with Coach", "Clinic", "Coaches Academy", "Play with Coach", "Player Academy"),
+		product: j.enum("Private Lesson", "Match with Coach", "Clinic", "Coaches Academy", "Play with Coach", "Player Academy", "Open Lessons", "Hybrid Lessons", "Tacit Socials", "Mini Tournaments", "Beat the Coach", "Life Academy", "Overseas Clubs"),
 		isDirector: j.boolean().describe("Verified director result from the coach's Tacit Director tag."),
+		coachLevel: j.string().nullable(),
 		weeklyHours: j.number(),
 		totalListPriceIdr: j.number(),
 		privateLessonRate: j.number(),
@@ -528,8 +855,8 @@ worker.tool("previewPaymentV1Compensation", {
 		coachCount: j.number(),
 	}),
 	outputSchema: j.object({
-		feeIdr: j.number(),
-		basis: j.enum("Director", "Below threshold", "Percentage", "Base-rate floor", "Match multiplier", "Academy percentage"),
+		feeIdr: j.number().nullable(),
+		basis: j.enum("Director", "Below threshold", "Percentage", "Base-rate floor", "Match multiplier", "Academy percentage", "Trainee base rate (10h weekly cap)", "Voucher pool — no above-threshold payment", "Unpriced product"),
 		boundary: j.string(),
 	}),
 	execute: (input) => ({
@@ -575,9 +902,9 @@ const getCoachDirectorState = async (notion: Client, coachPageId: string) => {
 		isDirector,
 		globalTagIds: tagIds,
 		globalTagNames: tagNames,
-		privateLessonRate: numberValue(property(coach, "PL %")),
-		playerAcademyRate: numberValue(property(coach, "PA %")),
-		coachesAcademyRate: numberValue(property(coach, "CA %")),
+		privateLessonRate: percentSelectValue(property(coach, "Coaching Band %")),
+		playerAcademyRate: percentSelectValue(property(coach, "Coaching Band %")),
+		coachesAcademyRate: percentSelectValue(property(coach, "Coaching Band %")),
 	}
 }
 
@@ -622,7 +949,7 @@ worker.tool("previewPaymentV1CompensationForEvent", {
 		if (!("properties" in rawEvent)) throw new Error("The supplied page is not a full Notion Event page.")
 		const event = rawEvent as unknown as NotionPage
 		const product = textValue(property(event, "Event Type"))
-		if (!(["Private Lesson", "Match with Coach", "Clinic", "Coaches Academy", "Play with Coach", "Player Academy"] as string[]).includes(product)) {
+		if (!(["Private Lesson", "Match with Coach", "Clinic", "Coaches Academy", "Play with Coach", "Player Academy", "Open Lessons", "Hybrid Lessons", "Overseas Clubs"] as string[]).includes(product)) {
 			throw new Error("Event Type is unresolved or unsupported for compensation.")
 		}
 		const coachIds = relationIds(property(event, "Coaches"))
@@ -661,7 +988,7 @@ worker.tool("calculatePaymentV1CompensationForEvent", {
 		if (!("properties" in rawEvent)) throw new Error("The supplied page is not a full Notion Event page.")
 		const event = rawEvent as unknown as NotionPage
 		const product = textValue(property(event, "Event Type")) as Product
-		if (!(["Private Lesson", "Match with Coach", "Clinic", "Coaches Academy", "Play with Coach", "Player Academy"] as string[]).includes(product)) {
+		if (!(["Private Lesson", "Match with Coach", "Clinic", "Coaches Academy", "Play with Coach", "Player Academy", "Open Lessons", "Hybrid Lessons", "Overseas Clubs"] as string[]).includes(product)) {
 			throw new Error("Event Type is unresolved or unsupported for compensation.")
 		}
 		if (textValue(property(event, "Status")) !== "Confirmed") {
@@ -712,8 +1039,8 @@ worker.tool("calculatePaymentV1CompensationForEvent", {
 			const playerAcademyRate = coach.playerAcademyRate
 			// Coaches Academy is a fixed policy rate, not an individual HR band.
 			const coachesAcademyRate = product === "Coaches Academy" ? 0.0875 : coach.coachesAcademyRate
-			if (["Private Lesson", "Clinic", "Play with Coach"].includes(product) && privateLessonRate === null) missing.push("PL %")
-			if (product === "Player Academy" && playerAcademyRate === null) missing.push("PA %")
+			if (["Private Lesson", "Clinic", "Play with Coach"].includes(product) && privateLessonRate === null) missing.push("Coaching Band %")
+			if (product === "Player Academy" && playerAcademyRate === null) missing.push("Coaching Band %")
 			if (missing.length > 0) {
 				return {
 					coachPageId: coach.coachPageId,
@@ -726,6 +1053,7 @@ worker.tool("calculatePaymentV1CompensationForEvent", {
 			const result = calculateCompensation({
 				product,
 				isDirector: false,
+				coachLevel: coach.coachLevel ?? null,
 				weeklyHours: weeklyHours[index] ?? 0,
 				totalListPriceIdr: totalListPriceIdr as number,
 				privateLessonRate: privateLessonRate ?? 0,
@@ -774,7 +1102,7 @@ const blockers: string[] = []
 if (textValue(property(event, "Financial Route")) !== "Payment V1") blockers.push("Event is not routed to Payment V1.")
 if (textValue(property(event, "Status")) !== "Confirmed") blockers.push("Event must be Confirmed.")
 if (booleanValue(property(event, "Payment Processing Exception"))) blockers.push("Payment Processing Exception is checked.")
-if (!(["Private Lesson", "Match with Coach", "Clinic", "Coaches Academy", "Play with Coach", "Player Academy"] as string[]).includes(product)) blockers.push("Event Type is unresolved or unsupported.")
+if (!(["Private Lesson", "Match with Coach", "Clinic", "Coaches Academy", "Play with Coach", "Player Academy", "Open Lessons", "Hybrid Lessons", "Overseas Clubs"] as string[]).includes(product)) blockers.push("Event Type is unresolved or unsupported.")
 const coachIds = relationIds(property(event, "Coaches"))
 if (coachIds.length < 1 || coachIds.length > 2) blockers.push("Event must have one or two coaches.")
 if (blockers.length > 0) {
@@ -815,14 +1143,15 @@ const results = coaches.map((coach, index) => {
 	const requiresWeeklyHours = ["Private Lesson", "Clinic", "Play with Coach"].includes(product)
 	if (requiresWeeklyHours && weeklyHours[index] === null) missing.push("weekly qualifying hours")
 	if (baseRateIdrPerHour === null) missing.push("coach-level base rate")
-	if (["Private Lesson", "Clinic", "Play with Coach"].includes(product) && coach.privateLessonRate === null) missing.push("PL %")
-	if (product === "Player Academy" && coach.playerAcademyRate === null) missing.push("PA %")
+	if (["Private Lesson", "Clinic", "Play with Coach"].includes(product) && coach.privateLessonRate === null) missing.push("Coaching Band %")
+	if (product === "Player Academy" && coach.playerAcademyRate === null) missing.push("Coaching Band %")
 	if (missing.length > 0 || totalListPriceIdr === null || onCourtHours === null) {
 		return { ...coach, feeIdr: null, basis: null, blockers: missing }
 	}
 	const calculation = calculateCompensation({
 		product,
 		isDirector: false,
+		coachLevel: coach.coachLevel ?? null,
 		weeklyHours: weeklyHours[index] ?? 0,
 		totalListPriceIdr,
 		privateLessonRate: coach.privateLessonRate ?? 0,
@@ -1065,7 +1394,10 @@ worker.webhook("onPaymentV1SaleReady", {
 				const booking = rawEvent as unknown as NotionPage
 				const product = textValue(property(booking, "Event Type")) as Product
 				const priceListIds = relationIds(property(booking, "Published Price List"))
-				if (product === "Player Academy") throw new Error("Player Academy is fail-closed for Payment V1.")
+				if (product === "Player Academy" || product === "Life Academy") throw new Error("Player Academy and Life Academy are fail-closed for Payment V1.")
+				const bookingGroupCount = relationIds(property(booking, "Students")).length
+				if (product === "Open Lessons" && (bookingGroupCount < 2 || bookingGroupCount > 4)) throw new Error("Open Lessons require a minimum of 2 and maximum of 4 students on the Event.")
+				if (product === "Hybrid Lessons" && (bookingGroupCount < 5 || bookingGroupCount > 8)) throw new Error("Hybrid Lessons require a minimum of 5 and maximum of 8 students on the Event.")
 				if (priceListIds.length !== 1) throw new Error("Event requires exactly one Published Price List.")
 				const rawPriceList = await notion.pages.retrieve({ page_id: priceListIds[0] })
 				if (!("properties" in rawPriceList)) throw new Error("Published Price List could not be read.")
@@ -1075,21 +1407,22 @@ worker.webhook("onPaymentV1SaleReady", {
 				const capacity = numberValue(property(booking, "Capacity"))
 				const sourceField = product === "Clinic"
 					? capacity !== null ? `${coachLevel} 1:${capacity} (IDR PP)` : null
-					: priceFieldFor(product, coachLevel, studentIds.length)
+					: priceFieldFor(product, coachLevel,
+						product === "Open Lessons" || product === "Hybrid Lessons" ? bookingGroupCount : studentIds.length)
 				const publishedPrice = numberValue(property(booking, "Published Price per Student (IDR)"))
-				const resolvedRate = product === "Play with Coach"
+				const resolvedRate = product === "Play with Coach" || product === "Overseas Clubs"
 					? publishedPrice
 					: sourceField ? numberValue(property(priceList, sourceField)) : null
 				if (resolvedRate === null) throw new Error("Active Price List does not resolve a rate for this Sale.")
-				if ((product === "Clinic" || product === "Play with Coach") && publishedPrice === null) {
+				if ((product === "Clinic" || product === "Play with Coach" || product === "Overseas Clubs") && publishedPrice === null) {
 					throw new Error("Event requires a published customer price.")
 				}
-				const finalCharge = product === "Clinic" || product === "Play with Coach" ? publishedPrice : resolvedRate
+				const finalCharge = product === "Clinic" || product === "Play with Coach" || product === "Overseas Clubs" ? publishedPrice : resolvedRate
 				if (finalCharge === null) throw new Error("Final customer price could not be resolved.")
 				if ((numberValue(property(sale, "Shared Discount %")) ?? 0) !== 0) {
 					throw new Error("Discounted processing is not enabled in this V1 trigger.")
 				}
-				const joinable = product === "Clinic" || product === "Coaches Academy" || product === "Play with Coach"
+				const joinable = product === "Clinic" || product === "Coaches Academy" || product === "Play with Coach" || product === "Open Lessons" || product === "Hybrid Lessons" || product === "Overseas Clubs"
 				let costSaleId: string | null = null
 				for (const linkedSaleId of relationIds(property(booking, "Sales"))) {
 					const candidateRaw = await notion.pages.retrieve({ page_id: linkedSaleId })
@@ -1128,7 +1461,8 @@ worker.webhook("onPaymentV1SaleReady", {
 						"Final Charged Price (IDR)": { number: finalCharge },
 						"Price List": { relation: [{ id: priceListIds[0] }] },
 						...(product === "Clinic" ? { "Clinic (IDR PP)": { number: publishedPrice } } : {}),
-						...(costSaleId ? { Item: { relation: [{ id: costSaleId }] } } : {}),
+						/* Child → parent link is Group (limit 1); Item is the parent's children list. */
+						...(costSaleId ? { Group: { relation: [{ id: costSaleId }] } } : {}),
 						"Payment Processing Status": { select: { name: "Processed" } },
 					} as never,
 				})
@@ -1182,6 +1516,9 @@ worker.tool("resolvePaymentV1Quote", {
 			"Coaches Academy": "Coaches Academy",
 			"Play with Coach": "Play with Coach",
 			"Player Academy": "Player Academy",
+			"Open Lessons": "Open Lessons",
+			"Hybrid Lessons": "Hybrid Lessons",
+			"Overseas Clubs": "Overseas Clubs",
 		}).includes(product)) blockers.push("Event Type is unresolved or unsupported.")
 		if (route !== "Payment V1") blockers.push("Event is not routed to Payment V1.")
 		if (!["Pending", "Payment Processing", "Confirmed"].includes(eventStatus)) {
@@ -1190,12 +1527,27 @@ worker.tool("resolvePaymentV1Quote", {
 		if (input.discountPercent < 0 || input.discountPercent > 1) {
 			blockers.push("Discount must be between 0 and 1.")
 		}
-		if (product === "Player Academy") blockers.push("Player Academy is fail-closed for Payment V1.")
+		if (product === "Player Academy" || product === "Life Academy") blockers.push("Player Academy and Life Academy are fail-closed for Payment V1.")
 		if (
 			product === "Private Lesson" &&
 			(input.studentCount < 1 || input.studentCount > 4)
 		) {
 			blockers.push("Private Lesson rate resolution requires one to four students.")
+		}
+		/* v12: OL/HL bounds and ratio resolve from the Event's booked group — a joinable
+		   quote represents one paid attendee, so input.studentCount is per-Sale, not group. */
+		const eventGroupCount = relationIds(property(event, "Students")).length
+		if (
+			product === "Open Lessons" &&
+			(eventGroupCount < 2 || eventGroupCount > 4)
+		) {
+			blockers.push("Open Lessons require a minimum of 2 and maximum of 4 students on the Event.")
+		}
+		if (
+			product === "Hybrid Lessons" &&
+			(eventGroupCount < 5 || eventGroupCount > 8)
+		) {
+			blockers.push("Hybrid Lessons require a minimum of 5 and maximum of 8 students on the Event.")
 		}
 		if (priceListIds.length !== 1) blockers.push("Exactly one Published Price List is required.")
 
@@ -1215,7 +1567,8 @@ worker.tool("resolvePaymentV1Quote", {
 				if (priceListStatus === "Proposed") {
 					blockers.push("Published Price List is still Proposed, not approved.")
 				}
-				sourceField = priceFieldFor(product, input.coachLevel, input.studentCount)
+				sourceField = priceFieldFor(product, input.coachLevel,
+					product === "Open Lessons" || product === "Hybrid Lessons" ? eventGroupCount : input.studentCount)
 				if (product === "Clinic" && input.plannedCapacity !== null) {
 					sourceField = `${input.coachLevel} 1:${input.plannedCapacity} (IDR PP)`
 				}
@@ -1238,20 +1591,20 @@ worker.tool("resolvePaymentV1Quote", {
 			blockers.push(`The active Price List has no value for ${sourceField}.`)
 		}
 		if (
-			(product === "Clinic" || product === "Play with Coach") &&
+			(product === "Clinic" || product === "Play with Coach" || product === "Overseas Clubs") &&
 			(publishedPrice === null || publishedPrice < 0)
 		) {
 			blockers.push("This product requires a non-negative published Event price per student.")
 		}
 
 		const customerPriceBeforeDiscount =
-			product === "Clinic" || product === "Play with Coach"
+			product === "Clinic" || product === "Play with Coach" || product === "Overseas Clubs"
 				? publishedPrice
 				: resolvedRate
 		const finalChargedPrice =
 			customerPriceBeforeDiscount === null
 				? null
-				: round(customerPriceBeforeDiscount * (1 - input.discountPercent))
+				: roundIdr(customerPriceBeforeDiscount * (1 - input.discountPercent))
 		const durationHours =
 			schedule?.start && schedule.end
 				? (new Date(schedule.end).getTime() - new Date(schedule.start).getTime()) /
@@ -1290,6 +1643,8 @@ type ApplyPaymentInput = {
 	operationKey: string
 	eventPageId: string
 	studentPageIds: string[]
+	priorEventStatus?: string
+	paymentDate?: string | null
 	paymentVerifiedAt?: string
 	paymentVerifiedById?: string
 	paymentVerificationNote: string
@@ -1311,12 +1666,49 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 		const event = rawEvent as unknown as NotionPage
 		const product = textValue(property(event, "Event Type")) as Product
 		const eventStatus = textValue(property(event, "Status"))
-		const eventTitle = textValue(property(event, "Event")) || "Payment V1 Sale"
+		let eventTitle = textValue(property(event, "Event")) || "Payment V1 Sale"
+		/* Safety net: correct Event titles that don't follow the naming convention.
+		   Basil should build these at creation time; this catches any that slip through. */
+		if (!isConventionTitle(eventTitle, product as string)) {
+			const conventionTitle = await buildEventTitle(notion, event, product as string)
+			if (conventionTitle && !isConventionTitle(eventTitle, product as string)) {
+				await notion.pages.update({
+					page_id: input.eventPageId,
+					properties: { Event: { title: [{ text: { content: conventionTitle } }] } } as never,
+				}).catch(() => undefined)
+				eventTitle = conventionTitle
+			}
+		}
 		const eventStudentIds = relationIds(property(event, "Students"))
 		const eventSaleIds = relationIds(property(event, "Sales"))
 		const eventCoachIds = relationIds(property(event, "Coaches"))
 		const eventOrganisationIds = relationIds(property(event, "Organisations"))
 		const eventAreaIds = relationIds(property(event, "Areas"))
+		const productSplitPrefix: Record<string, string> = {
+			"Private Lesson": "PL",
+			"Clinic": "CL",
+			"Coaches Academy": "CA",
+			"Play with Coach": "PC",
+			"Match with Coach": "MC",
+			"Player Academy": "PA",
+			"Open Lessons": "OL",
+			"Hybrid Lessons": "HL",
+			"Tacit Socials": "TS",
+			"Mini Tournaments": "MT",
+			"Beat the Coach": "BC",
+			"Life Academy": "LA",
+		}
+		let orgTacitSplit: number | null = null
+		let orgClubSplit: number | null = null
+		const splitPrefix = productSplitPrefix[product as string]
+		if (splitPrefix && eventOrganisationIds.length) {
+			const rawOrg = await notion.pages.retrieve({ page_id: eventOrganisationIds[0] })
+			if ("properties" in rawOrg) {
+				const org = rawOrg as unknown as NotionPage
+				orgTacitSplit = numberValue(property(org, `${splitPrefix}: Tacit %`))
+				orgClubSplit = numberValue(property(org, `${splitPrefix}: Club %`))
+			}
+		}
 		const priceListIds = relationIds(property(event, "Published Price List"))
 		const publishedPrice = numberValue(property(event, "Published Price per Student (IDR)"))
 		const declaredCapacity = numberValue(property(event, "Capacity"))
@@ -1328,7 +1720,9 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 		const joinable =
 			product === "Clinic" ||
 			product === "Coaches Academy" ||
-			product === "Play with Coach"
+			product === "Play with Coach" ||
+			product === "Open Lessons" ||
+			product === "Hybrid Lessons"
 
 		if (!["Pending", "Payment Processing", "Confirmed"].includes(eventStatus)) {
 			blockers.push("Event must be Pending, Payment Processing or Confirmed.")
@@ -1336,7 +1730,7 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 		if (booleanValue(property(event, "Payment Processing Exception"))) {
 			blockers.push("Payment Processing Exception is checked.")
 		}
-		if (product === "Player Academy") blockers.push("Player Academy is fail-closed for Payment V1.")
+		if (product === "Player Academy" || product === "Life Academy") blockers.push("Player Academy and Life Academy are fail-closed for Payment V1.")
 		if (!product) blockers.push("Event Type is unresolved.")
 		if (priceListIds.length !== 1) blockers.push("Exactly one Published Price List is required.")
 		if (input.studentPageIds.length < 1) blockers.push("At least one verified attendee is required.")
@@ -1352,13 +1746,13 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 			blockers.push("Match with Coach requires exactly three attendees.")
 		}
 		if (
-			product === "Private Lesson" &&
+			(product === "Private Lesson" || product === "Hybrid Lessons") &&
 			(input.studentPageIds.length < 1 || input.studentPageIds.length > 4)
 		) {
 			blockers.push("Private Lesson requires one to four attendees.")
 		}
 		if (
-			(product === "Private Lesson" || product === "Clinic") &&
+			(product === "Private Lesson" || product === "Clinic" || product === "Open Lessons" || product === "Hybrid Lessons") &&
 			input.revenueScope === "Academy Fees" &&
 			(input.courtHourlyRateIdr === null || input.courtHourlyRateIdr < 0)
 		) {
@@ -1395,7 +1789,14 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 				sourceField = `${coachLevel} 1:${plannedCapacity} (IDR PP)`
 			}
 		} else {
-			sourceField = priceFieldFor(product, coachLevel, input.studentPageIds.length)
+			/* v12: OL/HL price off the Event's booked group ratio — joinable instructions carry
+			   exactly one paid attendee, so the per-student rate must resolve from the Event's
+			   Students count (e.g. a 1:3 group rate), never the single-attendee instruction. */
+			const groupCount =
+				product === "Open Lessons" || product === "Hybrid Lessons"
+					? eventStudentIds.length
+					: input.studentPageIds.length
+			sourceField = priceFieldFor(product, coachLevel, groupCount)
 		}
 		let resolvedCoachingRate: number | null =
 			sourceField && activePriceList
@@ -1410,22 +1811,22 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 			)
 		}
 		if (
-			(product === "Clinic" || product === "Play with Coach") &&
+			(product === "Clinic" || product === "Play with Coach" || product === "Overseas Clubs") &&
 			(publishedPrice === null || publishedPrice < 0)
 		) {
 			blockers.push("This product requires a non-negative published Event price.")
 		}
 		const finalChargedPrice =
-			product === "Clinic" || product === "Play with Coach"
-				? publishedPrice === null ? null : round(publishedPrice * (1 - input.sharedDiscountPercent))
-				: resolvedCoachingRate === null ? null : round(resolvedCoachingRate * (1 - input.sharedDiscountPercent))
+			product === "Clinic" || product === "Play with Coach" || product === "Overseas Clubs"
+				? publishedPrice === null ? null : roundIdr(publishedPrice * (1 - input.sharedDiscountPercent))
+				: resolvedCoachingRate === null ? null : roundIdr(resolvedCoachingRate * (1 - input.sharedDiscountPercent))
 		const eventSchedule = dateValue(property(event, "Scheduled"))
 		const chargedHours =
 			eventSchedule?.start && eventSchedule.end
 				? (new Date(eventSchedule.end).getTime() - new Date(eventSchedule.start).getTime()) / 3_600_000
 				: 1
 		const finalChargedTotalPrice =
-			finalChargedPrice === null ? null : round(finalChargedPrice * input.studentPageIds.length * chargedHours)
+			finalChargedPrice === null ? null : roundIdr(finalChargedPrice * input.studentPageIds.length * chargedHours)
 
 		if (
 			eventCoachIds.length === 0 ||
@@ -1444,6 +1845,9 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 				revenueSaleId: null,
 				costSaleId: null,
 				ledgerId: null,
+				students: [],
+				saleTitle: null,
+				queue: null,
 				capacityConfirmation: null,
 				resolvedCoachingRateIdr: null,
 				finalChargedPricePerStudentIdr: null,
@@ -1461,17 +1865,55 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 			const rawSale = await notion.pages.retrieve({ page_id: saleId })
 			if (!("properties" in rawSale)) continue
 			const sale = rawSale as unknown as NotionPage
-			if (textValue(property(sale, "Payment Processing Status")) !== "Processed") continue
 			const role = textValue(property(sale, "Sale Role"))
+			/* Shared Cost Sales never carry Payment Processing Status — detect them by role,
+			   otherwise every joinable instruction creates a duplicate settlement row. */
+			if (role === "Cost") {
+				if (
+					textValue(property(sale, "Financial Route")) === "Payment V1" &&
+					textValue(property(sale, "Sale Status")) !== "Cancelled"
+				) existingCostSaleId = saleId
+				continue
+			}
+			if (textValue(property(sale, "Payment Processing Status")) !== "Processed") continue
 			if (
 				role === "Revenue" &&
 				sameIds(relationIds(property(sale, "Students")), input.studentPageIds)
 			) {
 				existingRevenueSaleId = saleId
 			}
-			if (role === "Cost") existingCostSaleId = saleId
 		}
 		const relations = (ids: string[]) => ids.map((id) => ({ id }))
+		const saleIcon = { type: "icon", icon: { name: "barcode", color: "brown" } } as never
+		/* Operator-facing progress data: the chat agent renders per-person receipts
+		   and the unpaid queue from these fields instead of reconstructing them by
+		   reading every Sale itself. */
+		const studentSummaries = async () =>
+			Promise.all(
+				input.studentPageIds.map(async (id) => {
+					try {
+						const rawStudent = await notion.pages.retrieve({ page_id: id })
+						const name =
+							"properties" in rawStudent
+								? textValue(property(rawStudent as unknown as NotionPage, "Name"))
+								: ""
+						return { id, name: name || id }
+					} catch {
+						return { id, name: id }
+					}
+				})
+			)
+		const paidQueue = (
+			confirmation: { paidAttendeeCount: number; capacity: number | null; paidStudentIds?: string[] } | null
+		) => {
+			const paidIds = new Set((confirmation?.paidStudentIds ?? []).map((id) => id.replace(/-/g, "")))
+			return {
+				capacity: confirmation?.capacity ?? null,
+				paidAttendeeCount: confirmation?.paidAttendeeCount ?? 0,
+				paidStudentIds: confirmation?.paidStudentIds ?? [],
+				unpaidStudentIds: eventStudentIds.filter((id) => !paidIds.has(id.replace(/-/g, ""))),
+			}
+		}
 		const ensureLedger = async (revenueSaleId: string) => {
 			const existingLedgerId = await findBalanceSheetIdForSale(notion, revenueSaleId)
 			if (existingLedgerId) return { ledgerId: existingLedgerId, created: false }
@@ -1487,7 +1929,7 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 						title: [
 							{
 								text: {
-									content: `${saleSku ? `${saleSku} · ` : ""}${saleTitle || `${eventTitle} · ${input.operationKey}`}`,
+									content: `${saleSku ? `${saleSku} · ` : ""}${saleTitle || eventTitle}`,
 								},
 							},
 						],
@@ -1496,10 +1938,12 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 					"Record Type": { select: { name: "Transaction" } },
 					"In/Out": { select: { name: "Incoming" } },
 					"Payment Status": { status: { name: "Paid" } },
-					"Transaction Date": { date: { start: input.paymentVerifiedAt || new Date().toISOString() } },
+					"Transaction Date": { date: { start: input.paymentDate || input.paymentVerifiedAt || new Date().toISOString() } },
 					Organisations: { relation: relations(eventOrganisationIds) },
 					Areas: { relation: relations(eventAreaIds) },
 					People: { relation: relations(input.studentPageIds) },
+					"FX Source Currency": { select: { name: "IDR" } },
+					"FX Source Amount": { number: (numberValue(property(revenueSale, "Final Charged Price (IDR)")) ?? 0) * 1000 },
 					Note: {
 						rich_text: [
 							{
@@ -1516,7 +1960,13 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 
 		if (existingRevenueSaleId) {
 			const ledger = await ensureLedger(existingRevenueSaleId)
+			await ensureEventSalesLinked(notion, input.eventPageId, [existingRevenueSaleId, existingCostSaleId])
+			await ensureCostSaleItemsLinked(notion, existingCostSaleId, [existingRevenueSaleId])
 			const capacityConfirmation = await confirmEventIfPaidCapacity(notion, input.eventPageId)
+			if (!capacityConfirmation.confirmed && textValue(property(event, "Status")) === "Payment Processing") {
+				const restore = input.priorEventStatus === "Confirmed" ? "Confirmed" : "Pending"
+				await notion.pages.update({ page_id: input.eventPageId, properties: { Status: { status: { name: restore } } } })
+			}
 			return {
 				mode: "idempotent-reuse",
 				operationKey: input.operationKey,
@@ -1524,6 +1974,9 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 				revenueSaleId: existingRevenueSaleId,
 				costSaleId: existingCostSaleId,
 				ledgerId: ledger.ledgerId,
+				students: await studentSummaries(),
+				saleTitle: textValue(property((await notion.pages.retrieve({ page_id: existingRevenueSaleId })) as unknown as NotionPage, "Sale")) || eventTitle,
+				queue: paidQueue(capacityConfirmation),
 				capacityConfirmation,
 				created: ledger.created ? ["Balance Sheet ledger"] : [],
 				blockers: [],
@@ -1562,14 +2015,18 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 			"Shared Discount %": { number: input.sharedDiscountPercent },
 			"Discount Reason": { multi_select: input.discountReasons.map((name) => ({ name })) },
 			"Discount Explanation": { rich_text: input.discountExplanation ? [{ type: "text", text: { content: input.discountExplanation } }] : [] },
+			...(orgTacitSplit !== null ? { "Tacit %": { number: orgTacitSplit } } : {}),
+			...(orgClubSplit !== null ? { "Club %": { number: orgClubSplit } } : {}),
 		}
 
 		let createdCostSale = false
 		if (joinable && !existingCostSaleId) {
+			const { "Tacit %": _t, "Club %": _c, ...costProperties } = commonProperties as Record<string, unknown>
 			const cost = await notion.pages.create({
 				parent: { data_source_id: "261afdfb-c3c7-81d5-b4a7-000b0f69814f" },
+				icon: saleIcon,
 				properties: {
-					...commonProperties,
+					...costProperties,
 					Sale: { title: [{ text: { content: `${eventTitle} · Cost` } }] },
 					"Sale Role": { select: { name: "Cost" } },
 					"Payment Channel": { select: { name: "Cost" } },
@@ -1580,20 +2037,30 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 			createdCostSale = true
 		}
 
+		/* Build the Sale title per the naming convention.
+		   The Sale reuses the session tokens and swaps the coach/ratio for the
+		   paying customer, matching the agreed naming convention. */
+		const saleTitle = await buildSaleTitle(notion, event, product as string, input.studentPageIds)
+
 		const revenue = await notion.pages.create({
 			parent: { data_source_id: "261afdfb-c3c7-81d5-b4a7-000b0f69814f" },
+			icon: saleIcon,
 			properties: {
 				...commonProperties,
 				Sale: {
 					title: [
 						{
 							text: {
-								content: `${eventTitle} · ${input.operationKey}`,
+								content: saleTitle,
 							},
 						},
 					],
 				},
+				"Payment Key": {
+					rich_text: [{ type: "text", text: { content: input.operationKey } }],
+				},
 				Students: { relation: relations(input.studentPageIds) },
+				People: { relation: relations(input.studentPageIds) },
 				"Sale Role": { select: { name: "Revenue" } },
 				"Payment Channel": { select: { name: input.paymentChannel } },
 				"Paid To": { select: { name: input.paidTo } },
@@ -1604,6 +2071,12 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 						...(walletType ? { "Wallet Type": { select: { name: walletType } } } : {}),
 					}
 					: {}),
+				/* Joinable Revenue Sales link to the shared Cost Sale via Group (child → parent);
+				   wallet channel already owns Group, and wallet is Private-Lesson-only anyway. */
+				...(joinable && existingCostSaleId && input.paymentChannel !== "Wallet"
+					? { Group: { relation: relations([existingCostSaleId]) } }
+					: {}),
+				...(input.paymentDate ? { "Payment Date": { date: { start: input.paymentDate } } } : {}),
 				...(input.paymentVerifiedAt ? { "Payment Verified At": { date: { start: input.paymentVerifiedAt } } } : {}),
 				...(input.paymentVerifiedById ? { "Payment Verified By": { people: [{ id: input.paymentVerifiedById }] } } : {}),
 				"Payment Verification Note": {
@@ -1619,26 +2092,40 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 				...(product === "Clinic"
 					? { "Clinic (IDR PP)": { number: publishedPrice } }
 					: {}),
-				...(existingCostSaleId
-					? { Item: { relation: relations([existingCostSaleId]) } }
-					: {}),
 			} as never,
 		})
 		const ledger = await ensureLedger(revenue.id)
+		await ensureEventSalesLinked(notion, input.eventPageId, [revenue.id, existingCostSaleId])
+		await ensureCostSaleItemsLinked(notion, existingCostSaleId, [revenue.id])
 		const capacityConfirmation = await confirmEventIfPaidCapacity(notion, input.eventPageId)
+		/* Further payment can still be required — return the Event to its prior status
+		   (Pending, or Confirmed when a late joiner paid on a confirmed joinable Event)
+		   so the next sequential instruction can trigger Payment Processing again. */
+		if (!capacityConfirmation.confirmed && textValue(property(event, "Status")) === "Payment Processing") {
+			const restore = input.priorEventStatus === "Confirmed" ? "Confirmed" : "Pending"
+			await notion.pages.update({ page_id: input.eventPageId, properties: { Status: { status: { name: restore } } } })
+		}
 
+		/* The Hourly Rate write is best-effort: if the Worker credentials lack access to the
+		   Rates data source the payment result must still report applied, not failed. */
 		let createdRateId: string | null = null
+		let rateError: string | null = null
 		if (!relationIds(property(event, "Hourly Rate")).length) {
-			const rate = await notion.pages.create({
-				parent: { data_source_id: "296afdfb-c3c7-816c-b798-000b917a3347" },
-				properties: {
-					Rate: { title: [{ text: { content: `TP-000000 · ${eventTitle}` } }] },
-					"Database Group": { select: { name: "Knowledge" } },
-					People: { relation: relations(eventCoachIds) },
-					Events: { relation: relations([input.eventPageId]) },
-				} as never,
-			})
-			createdRateId = rate.id
+			try {
+				const rate = await notion.pages.create({
+					parent: { data_source_id: "296afdfb-c3c7-816c-b798-000b917a3347" },
+					properties: {
+						Rate: { title: [{ text: { content: `TP-000000 · ${eventTitle}` } }] },
+						"Database Group": { select: { name: "Knowledge" } },
+						People: { relation: relations(eventCoachIds) },
+						Events: { relation: relations([input.eventPageId]) },
+					} as never,
+				})
+				createdRateId = rate.id
+			} catch (error) {
+				rateError = error instanceof Error ? error.message : String(error)
+				console.warn(`Hourly Rate creation failed for ${input.eventPageId}:`, error)
+			}
 		}
 
 		return {
@@ -1649,9 +2136,14 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 			costSaleId: existingCostSaleId,
 			ledgerId: ledger.ledgerId,
 			rateRecordId: createdRateId,
+			rateError,
+			students: await studentSummaries(),
+			saleTitle: saleTitle,
+			queue: paidQueue(capacityConfirmation),
 			capacityConfirmation,
 			resolvedCoachingRateIdr: resolvedCoachingRate,
 			finalChargedPricePerStudentIdr: finalChargedPrice,
+			finalChargedTotalPriceIdr: finalChargedTotalPrice,
 			created: [
 				...(createdCostSale ? ["shared Cost Sale"] : []),
 				"Revenue Sale",
@@ -1672,6 +2164,7 @@ worker.tool("applyPaymentV1VerifiedSale", {
 		operationKey: j.string().describe("Stable operator-confirmed idempotency key for this payment."),
 		eventPageId: j.string().describe("The Payment V1 Event page ID."),
 		studentPageIds: j.array(j.string()).describe("Verified attendee page IDs. One paid place for joinable products; the full booked group for Private Lesson or Match with Coach."),
+		paymentDate: j.string().nullable().describe("ISO-8601 date the payment was actually received (YYYY-MM-DD), operator-confirmed. Written to Sale Payment Date and the ledger Transaction Date."),
 		paymentVerifiedAt: j.string().describe("ISO-8601 timestamp at which payment was verified."),
 		paymentVerifiedById: j.string().describe("Notion user ID of the payment verifier."),
 		paymentVerificationNote: j.string().describe("Short non-sensitive evidence or director-confirmation note."),
@@ -1690,9 +2183,13 @@ type PaymentV1EventInstruction = {
 	operationKey: string
 	eventPageId: string
 	studentPageIds: string[]
+	/* Status the Event held before Payment Processing (e.g. "Confirmed" when a late
+	   joiner pays on an already-confirmed joinable Event). Restored on block/partial. */
+	priorEventStatus?: string
 	processingType: "Payment" | "Promo"
 	paymentVerifiedAt?: string
 	paymentVerifiedById?: string
+	paymentDate?: string
 	paymentVerificationNote: string
 	paymentChannel: "Bank transfer" | "Courtside" | "Club" | "Ayo" | "Reclub" | "Wallet"
 	walletHolderPageId?: string
@@ -1746,7 +2243,9 @@ const eventInstruction = (event: NotionPage): PaymentV1EventInstruction | null =
 		return {
 			operationKey: item.operationKey, eventPageId: item.eventPageId,
 			studentPageIds: item.studentPageIds.filter((id): id is string => typeof id === "string"),
+			priorEventStatus: typeof item.priorEventStatus === "string" ? item.priorEventStatus : undefined,
 			processingType: "Payment", paymentVerifiedAt: typeof item.paymentVerifiedAt === "string" ? item.paymentVerifiedAt : undefined, paymentVerifiedById: typeof item.paymentVerifiedById === "string" ? item.paymentVerifiedById : undefined,
+			paymentDate: typeof item.paymentDate === "string" ? item.paymentDate : undefined,
 			paymentVerificationNote: typeof item.paymentVerificationNote === "string" ? item.paymentVerificationNote : "Wallet-funded payment",
 			paymentChannel: item.paymentChannel as PaymentV1EventInstruction["paymentChannel"], paidTo: item.paidTo as PaymentV1EventInstruction["paidTo"],
 			walletHolderPageId: typeof item.walletHolderPageId === "string" ? item.walletHolderPageId : undefined,
@@ -1787,9 +2286,11 @@ const eventInstructionFromPageContent = async (
 			operationKey: item.operationKey,
 			eventPageId: item.eventPageId,
 			studentPageIds: item.studentPageIds.filter((id): id is string => typeof id === "string"),
+			priorEventStatus: typeof item.priorEventStatus === "string" ? item.priorEventStatus : undefined,
 			processingType: "Payment",
 			paymentVerifiedAt: typeof item.paymentVerifiedAt === "string" ? item.paymentVerifiedAt : undefined,
 			paymentVerifiedById: typeof item.paymentVerifiedById === "string" ? item.paymentVerifiedById : undefined,
+			paymentDate: typeof item.paymentDate === "string" ? item.paymentDate : undefined,
 			paymentVerificationNote: typeof item.paymentVerificationNote === "string" ? item.paymentVerificationNote : "Wallet-funded payment",
 			paymentChannel: item.paymentChannel as PaymentV1EventInstruction["paymentChannel"],
 			paidTo: item.paidTo as PaymentV1EventInstruction["paidTo"],
@@ -1871,17 +2372,220 @@ worker.webhook("onPaymentV1EventProcessing", {
 				const result = await applyPaymentV1VerifiedSale(instruction, notion)
 				if (result.mode === "blocked-no-write") {
 					console.warn(`Payment V1 Event processing blocked for ${eventPageId}: ${result.blockers.join(" | ")}`)
+					const restore = instruction.priorEventStatus === "Confirmed" ? "Confirmed" : "Pending"
 					await notion.pages.update({
 						page_id: eventPageId,
-						properties: { Status: { status: { name: "Pending" } } },
+						properties: { Status: { status: { name: restore } } },
 					})
+					await appendSybilAudit(notion, eventPageId, `[PaymentV1:${instruction.operationKey}] blocked-no-write; blockers: ${result.blockers.join(" | ")}`).catch(() => undefined)
+				} else {
+					const cap = result.capacityConfirmation
+					/* Rich per-person receipt: the operator-facing agent quotes this line
+					   verbatim to report who just paid and who is still unpaid. */
+					const studentNames = Array.isArray(result.students)
+						? result.students.map((student: { name?: string }) => student.name ?? "unknown").join(", ")
+						: ""
+					const unpaidIds = Array.isArray(result.queue?.unpaidStudentIds) ? result.queue.unpaidStudentIds.join(", ") : ""
+					await appendSybilAudit(notion, eventPageId, `[PaymentV1:${result.operationKey}] ${result.mode}; sale: ${result.saleTitle ?? "unknown"}; students: ${studentNames || "unknown"}; chargedPerStudentIdr: ${result.finalChargedTotalPriceIdr ?? "?"}; ratePerHourIdr: ${result.resolvedCoachingRateIdr ?? "?"}; revenueSaleId: ${result.revenueSaleId ?? "none"}; costSaleId: ${result.costSaleId ?? "none"}; ledgerId: ${result.ledgerId ?? "none"}; hourlyRateId: ${result.rateRecordId ?? "existing-or-none"}; paid ${cap?.paidAttendeeCount ?? "?"}/${cap?.capacity ?? "?"}${unpaidIds ? `; unpaid: ${unpaidIds}` : ""}; eventConfirmed: ${cap?.confirmed === true}${result.rateError ? `; hourlyRateError: ${result.rateError}` : ""}`).catch(() => undefined)
 				}
 			} catch (error) {
 				console.error(`Payment V1 Event processing failed for ${eventPageId}:`, error)
+				await appendSybilAudit(notion, eventPageId, `[PaymentV1] failed; error: ${error instanceof Error ? error.message : String(error)}`).catch(() => undefined)
 			}
 		}
 	},
 })
+
+
+type MonthlyPayrollInstruction = {
+	operationKey: string
+	year: number
+	month: number
+	dividendPool: number
+	transactionDate: string
+	employees: Array<{ profileId: string; salary: number }>
+	authorisedBy: string
+}
+
+const payrollInstructionFromPageContent = async (
+	notion: Client,
+	pageId: string
+): Promise<MonthlyPayrollInstruction | null> => {
+	const blocks = await notion.blocks.children.list({ block_id: pageId, page_size: 100 })
+	const content = blocks.results
+		.map((block: any) => {
+			const typedBlock = block?.[block?.type]
+			return Array.isArray(typedBlock?.rich_text)
+				? typedBlock.rich_text.map((item: { plain_text?: string }) => item.plain_text ?? "").join("")
+				: ""
+		})
+		.join("\n")
+	const candidates = jsonObjectsIn(content).filter((value): value is Record<string, unknown> =>
+		Boolean(value) && typeof value === "object" && !Array.isArray(value)
+	)
+	for (const item of candidates.reverse()) {
+		if (item.type !== "monthly-payroll-instruction") continue
+		if (typeof item.operationKey !== "string") continue
+		if (typeof item.year !== "number" || typeof item.month !== "number") continue
+		if (typeof item.dividendPool !== "number") continue
+		if (typeof item.transactionDate !== "string") continue
+		if (typeof item.authorisedBy !== "string") continue
+		if (!Array.isArray(item.employees)) continue
+		const employees = item.employees
+			.filter((e: unknown): e is Record<string, unknown> => Boolean(e) && typeof e === "object" && !Array.isArray(e))
+			.map((e: Record<string, unknown>) => ({
+				profileId: String(e.profileId ?? ""),
+				salary: Number(e.salary ?? 0),
+			}))
+			.filter((e) => e.profileId && e.salary > 0)
+		if (employees.length < 1) continue
+		return {
+			operationKey: item.operationKey,
+			year: item.year,
+			month: item.month,
+			dividendPool: item.dividendPool,
+			transactionDate: item.transactionDate,
+			employees,
+			authorisedBy: item.authorisedBy,
+		}
+	}
+	return null
+}
+
+worker.webhook("onPayrollInstructionProcessing", {
+	title: "Payroll instruction trigger",
+	description: "Processes the latest verified Payton payroll instruction when a page receives a monthly-payroll-instruction.",
+	verify: () => ({ status: 202, body: "accepted" }),
+	execute: async (events, { notion }) => {
+		for (const webhookEvent of events) {
+			if (!hasValidPaymentV1WebhookSecret(webhookEvent.headers)) {
+				console.warn("Payroll webhook ignored: invalid shared secret.")
+				continue
+			}
+			const body = webhookEvent.body as Record<string, unknown>
+			const data = body?.data as Record<string, unknown> | undefined
+			const pageId =
+				eventIdFromWebhook(data?.id) ??
+				eventIdFromWebhook(body?.pageId) ??
+				eventIdFromWebhook(body?.eventPageId)
+			if (!pageId) { console.warn("Payroll webhook ignored: no page ID."); continue }
+			try {
+				const instruction = await payrollInstructionFromPageContent(notion, pageId)
+				if (!instruction) throw new Error("No valid monthly-payroll-instruction found in page content.")
+				const startDate = new Date(instruction.year, instruction.month - 1, 1)
+				const endDate = new Date(instruction.year, instruction.month, 0)
+				const monthName = startDate.toLocaleString("en-US", { month: "long", year: "numeric" })
+				if (instruction.employees.length < 1) throw new Error("At least one employee is required.")
+				const profiles = await Promise.all(
+					instruction.employees.map(async (e) => {
+						const raw = await notion.pages.retrieve({ page_id: e.profileId })
+						if (!("properties" in raw)) throw new Error(`HR profile ${e.profileId} could not be read.`)
+						const page = raw as unknown as NotionPage
+						return {
+							id: e.profileId,
+							name: textValue(property(page, "Name")),
+							salary: e.salary,
+							splitPct: numberValue(property(page, "Dividend Split %")),
+						}
+					})
+				)
+				const totalPct = profiles.reduce((s, p) => s + (p.splitPct ?? 0), 0)
+				if (totalPct > 1.0001) throw new Error(`Dividend Split % total exceeds 100%: ${round(totalPct * 100)}%`)
+				const created: Array<{ name: string; payrollId: string; dividendId: string; salary: number; dividendAmount: number }> = []
+				let allocated = 0
+				for (let i = 0; i < profiles.length; i++) {
+					const profile = profiles[i]
+					const payroll = await notion.pages.create({
+						parent: { database_id: hrDataSourceId },
+						icon: { type: "external", external: { url: "https://app.notion.com/icons/atm_orange.svg" } },
+						properties: {
+							Name: { title: [{ text: { content: `Payroll: ${monthName} - ${profile.name}` } }] },
+							"HR Type": { select: { name: "Payroll" } },
+							"Pay Period": { date: { start: startDate.toISOString().slice(0, 10), end: endDate.toISOString().slice(0, 10) } },
+							"Amount (IDR)": { number: profile.salary },
+							"TP: HR [Self]": { relation: [{ id: profile.id }] },
+							Profile: { relation: [{ id: profile.id }] },
+						} as never,
+					})
+					const bsRow = await notion.pages.create({
+						parent: { data_source_id: balanceSheetDataSourceId },
+						icon: { type: "external", external: { url: "https://app.notion.com/icons/downward_red.svg" } },
+						properties: {
+							Item: { title: [{ text: { content: `Payroll: ${monthName} - ${profile.name}` } }] },
+							"Human Resources": { relation: [{ id: payroll.id }] },
+							"Budget Category": { multi_select: [{ name: "Salaries" }] },
+							"Price (IDR)": { number: profile.salary },
+							"FX Source Amount": { number: profile.salary * 1000 },
+							"FX Source Currency": { select: { name: "IDR" } },
+							"Billing Period": { date: { start: startDate.toISOString().slice(0, 10), end: endDate.toISOString().slice(0, 10) } },
+							"Transaction Date": { date: { start: instruction.transactionDate } },
+							"In/Out": { select: { name: "Outgoing" } },
+							"Record Type": { select: { name: "Transaction" } },
+							"Audit Status": { status: { name: "Not started" } },
+							"Audit Batch": { select: { name: "Payroll" } },
+							"Payment Status": { status: { name: "Paid" } },
+							Recurring: { select: { name: "Monthly" } },
+							"Database Group": { select: { name: "Knowledge" } },
+						} as never,
+					})
+					await notion.pages.update({
+						page_id: payroll.id,
+						properties: { "Balance Sheet": { relation: [{ id: bsRow.id }] } } as never,
+					})
+					const amount = profile.splitPct !== null && profile.splitPct > 0 ? round(instruction.dividendPool * profile.splitPct) : 0
+					allocated += amount
+					if (amount <= 0) {
+						created.push({ name: profile.name, payrollId: payroll.id, dividendId: "", salary: profile.salary, dividendAmount: 0 })
+						continue
+					}
+					const dividend = await notion.pages.create({
+						parent: { database_id: hrDataSourceId },
+						icon: { type: "external", external: { url: "https://app.notion.com/icons/atm_green.svg" } },
+						properties: {
+							Name: { title: [{ text: { content: `Dividend: ${monthName} - ${profile.name}` } }] },
+							"HR Type": { select: { name: "Dividend Split" } },
+							"Pay Period": { date: { start: startDate.toISOString().slice(0, 10), end: endDate.toISOString().slice(0, 10) } },
+							"Amount (IDR)": { number: amount },
+							"Dividend Split %": { number: profile.splitPct as number },
+							"TP: HR [Self]": { relation: [{ id: payroll.id }] },
+							Profile: { relation: [{ id: profile.id }] },
+						} as never,
+					})
+					const divBsRow = await notion.pages.create({
+						parent: { data_source_id: balanceSheetDataSourceId },
+						icon: { type: "external", external: { url: "https://app.notion.com/icons/downward_red.svg" } },
+						properties: {
+							Item: { title: [{ text: { content: `Dividend: ${monthName} - ${profile.name}` } }] },
+							"Human Resources": { relation: [{ id: dividend.id }] },
+							"Budget Category": { multi_select: [{ name: "Salaries" }] },
+							"Price (IDR)": { number: amount },
+							"FX Source Amount": { number: amount * 1000 },
+							"FX Source Currency": { select: { name: "IDR" } },
+							"Billing Period": { date: { start: startDate.toISOString().slice(0, 10), end: endDate.toISOString().slice(0, 10) } },
+							"Transaction Date": { date: { start: instruction.transactionDate } },
+							"In/Out": { select: { name: "Outgoing" } },
+							"Record Type": { select: { name: "Transaction" } },
+							"Audit Status": { status: { name: "Not started" } },
+							"Audit Batch": { select: { name: "Payroll" } },
+							"Payment Status": { status: { name: "Paid" } },
+							Recurring: { select: { name: "Monthly" } },
+							"Database Group": { select: { name: "Knowledge" } },
+						} as never,
+					})
+					await notion.pages.update({
+						page_id: dividend.id,
+						properties: { "Balance Sheet": { relation: [{ id: divBsRow.id }] } } as never,
+					})
+					created.push({ name: profile.name, payrollId: payroll.id, dividendId: dividend.id, salary: profile.salary, dividendAmount: amount })
+				}
+				console.log(`Payroll processed for ${monthName}: ${created.length} employees, dividend allocated ${allocated}, unallocated ${instruction.dividendPool - allocated}`)
+			} catch (error) {
+				console.error(`Payroll processing failed for ${pageId}:`, error)
+			}
+		}
+	},
+})
+
 
 worker.tool("confirmPaymentV1PrivateLessonEvent", {
 	title: "Validate Payment V1 Private Lesson for booking confirmation",
@@ -2196,7 +2900,7 @@ worker.tool("previewPaymentV1Event", {
 		}
 		if (eventStatus === "Cancelled") blockers.push("Cancelled Events cannot be processed.")
 		if (exception) blockers.push("Payment Processing Exception is checked.")
-		if (product === "Player Academy") blockers.push("Player Academy is fail-closed for Payment V1.")
+		if (product === "Player Academy" || product === "Life Academy") blockers.push("Player Academy and Life Academy are fail-closed for Payment V1.")
 		if (isJoinable && publishedPriceLists.length !== 1) {
 			blockers.push("Joinable Events require exactly one published Price List.")
 		}
@@ -2205,8 +2909,19 @@ worker.tool("previewPaymentV1Event", {
 		}
 		if (!scheduled?.start) blockers.push("Scheduled date/time is missing.")
 
+		/* Rolling-intake warning: without a declared Capacity the paid-capacity
+		   gate falls back to the current Students count and can confirm the
+		   Event early while more signups are still expected. */
+		const warnings: string[] = []
+		const queueProduct = ["Clinic", "Coaches Academy", "Play with Coach", "Open Lessons", "Hybrid Lessons"].includes(product)
+		const declaredCapacity = numberValue(property(event, "Capacity"))
+		if (queueProduct && (declaredCapacity === null || declaredCapacity < 1 || !Number.isInteger(declaredCapacity))) {
+			warnings.push("Capacity is undeclared; paid-capacity confirmation falls back to the current Students count and may confirm the Event early during rolling intake.")
+		}
+
 		return {
 			mode: "read-only",
+			warnings,
 			operationKey: input.operationKey,
 			event: {
 				id: input.eventPageId,
@@ -2782,7 +3497,7 @@ const resolveAcademyFees = async (notion: Client, priceListId: string): Promise<
 	const priceList = raw as unknown as NotionPage
 	const thousands = numberValue(property(priceList, "Players Academy (IDR PP)"))
 	if (thousands === null) throw new Error("Active Price List does not resolve Players Academy (IDR PP).")
-	return thousands * 1000
+	return thousands  // Sales convention: thousands
 }
 
 const readStudentTribeState = async (
@@ -2865,6 +3580,7 @@ type PlayerAcademyPurchaseInput = {
 	processingType: "Payment" | "Promo"
 	paymentChannel: "Bank transfer" | "Courtside" | "Club" | "Ayo" | "Reclub" | "Wallet"
 	paidTo: "Tacit" | "Club"
+	paymentDate?: string | null
 	paymentVerifiedAt?: string
 	paymentVerifiedById?: string
 	paymentVerificationNote: string
@@ -2931,7 +3647,7 @@ const applyPlayerAcademyPurchase = async (
 			const computed = tribeDiscountForNumber(tribeNumber)
 			if (computed > 0) {
 				discountPercent = computed
-				discountReasonNames = ["Tacit Tribe"]
+				discountReasonNames = ["Early Bird Promotion: Tacit Originals"]
 				const expiry = new Date(joinedTacitTribe!)
 				expiry.setMonth(expiry.getMonth() + 6)
 				discountExplanation = `Tribe #${tribeNumber}, ${Math.round(computed * 100)}% Shared Discount, expires ${expiry.toISOString().slice(0, 10)}`
@@ -2956,12 +3672,26 @@ const applyPlayerAcademyPurchase = async (
 	const finalChargedPrice = academyFeesIdr - discountAmountIdr + input.courtRentalIdr
 
 	// 4. Create the Sale without an Event
-	const saleTitle = `V1 Player Academy · ${input.coachLevel} · ${input.operationKey}`
+	const saleTitle = `V1 Player Academy · ${input.coachLevel}`
+	let paTacitSplit: number | null = null
+	let paClubSplit: number | null = null
+	const rawClub = await notion.pages.retrieve({ page_id: input.clubPageId })
+	if ("properties" in rawClub) {
+		const club = rawClub as unknown as NotionPage
+		paTacitSplit = numberValue(property(club, "PA: Tacit %"))
+		paClubSplit = numberValue(property(club, "PA: Club %"))
+	}
 	const relations = (ids: string[]) => ids.map((id) => ({ id }))
 	const sale = await notion.pages.create({
 		parent: { data_source_id: salesDataSourceId },
+		icon: { type: "icon", icon: { name: "barcode", color: "brown" } } as never,
 		properties: {
 			Sale: { title: [{ text: { content: saleTitle } }] },
+			"Payment Key": {
+				rich_text: [{ type: "text", text: { content: input.operationKey } }],
+			},
+			...(paTacitSplit !== null ? { "Tacit %": { number: paTacitSplit } } : {}),
+			...(paClubSplit !== null ? { "Club %": { number: paClubSplit } } : {}),
 			Students: { relation: relations([input.studentPageId]) },
 			Organisations: { relation: relations([input.clubPageId]) },
 			"Sale Type": { select: { name: "Player Academy" } },
@@ -2970,6 +3700,7 @@ const applyPlayerAcademyPurchase = async (
 			"Financial Route": { select: { name: "Payment V1" } },
 			"Price List": { relation: [{ id: activePriceListId }] },
 			"Revenue Scope": { select: { name: "Academy Fees" } },
+			Areas: { relation: [{ id: "26cafdfb-c3c7-8029-b99c-ddff61c256f3" }] },
 			"Resolved Coaching Rate (IDR)": { number: academyFeesIdr },
 			"Final Charged Price (IDR)": { number: finalChargedPrice },
 			"Court Hourly Rate (IDR)": { number: input.courtRentalIdr },
@@ -2982,6 +3713,7 @@ const applyPlayerAcademyPurchase = async (
 			},
 			"Payment Channel": { select: { name: input.paymentChannel } },
 			"Paid To": { select: { name: input.paidTo } },
+			...(input.paymentDate ? { "Payment Date": { date: { start: input.paymentDate } } } : {}),
 			...(input.paymentVerifiedAt ? { "Payment Verified At": { date: { start: input.paymentVerifiedAt } } } : {}),
 			...(input.paymentVerifiedById ? { "Payment Verified By": { people: [{ id: input.paymentVerifiedById }] } } : {}),
 			"Payment Verification Note": {
@@ -2989,6 +3721,7 @@ const applyPlayerAcademyPurchase = async (
 					{ type: "text", text: { content: `[${input.operationKey}] ${input.paymentVerificationNote}` } },
 				],
 			},
+			...(input.paymentVerifiedAt ? { "Revenue Date": { date: { start: input.paymentVerifiedAt } } } : {}),
 			"Payment Processing Status": { select: { name: "Processed" } },
 		} as never,
 	})
@@ -3010,17 +3743,19 @@ const applyPlayerAcademyPurchase = async (
 		icon: { type: "icon", icon: { name: "upward", color: "green" } } as never,
 		properties: {
 			Item: {
-				title: [{ text: { content: `${academySaleSku ? `${academySaleSku} · ` : ""}${saleTitle} · ${input.operationKey}` } }],
+				title: [{ text: { content: `${academySaleSku ? `${academySaleSku} · ` : ""}${saleTitle}` } }],
 			},
 			Sales: { relation: [{ id: sale.id }] },
 			"Record Type": { select: { name: "Transaction" } },
 			"In/Out": { select: { name: "Incoming" } },
 			"Payment Status": { status: { name: "Paid" } },
 			"Transaction Date": {
-				date: { start: input.paymentVerifiedAt ?? new Date().toISOString() },
+				date: { start: input.paymentDate ?? input.paymentVerifiedAt ?? new Date().toISOString() },
 			},
 			Organisations: { relation: relations([input.clubPageId]) },
 			People: { relation: relations([input.studentPageId]) },
+			"FX Source Currency": { select: { name: "IDR" } },
+			"FX Source Amount": { number: finalChargedPrice * 1000 },
 			Note: {
 				rich_text: [
 					{ type: "text", text: { content: `Player Academy Mode 2 apply for ${saleTitle}` } },
@@ -3061,10 +3796,11 @@ worker.tool("applyPlayerAcademyPurchase", {
 		studentPageId: j.string().describe("TP: People page ID of the student."),
 		coachLevel: j.enum("Head Coach", "Senior Coach", "Coach", "Instructor").describe("Coach level for title only."),
 		clubPageId: j.string().describe("TP: Organisations page ID of the club."),
-		courtRentalIdr: j.number().describe("Court rental amount in full IDR (operator-provided)."),
+		courtRentalIdr: j.number().describe("Court rental amount in thousands IDR (operator-provided)."),
 		processingType: j.enum("Payment", "Promo").describe("Processing type."),
 		paymentChannel: j.enum("Bank transfer", "Courtside", "Club", "Ayo", "Reclub").describe("Payment channel."),
 		paidTo: j.enum("Tacit", "Club").describe("Who collected the payment."),
+		paymentDate: j.string().nullable().describe("ISO-8601 date the payment was actually received (YYYY-MM-DD), operator-confirmed. Written to Sale Payment Date and the ledger Transaction Date."),
 		paymentVerifiedAt: j.string().nullable().describe("ISO timestamp when payment was verified."),
 		paymentVerifiedById: j.string().nullable().describe("Notion user ID of verifier (Bank transfer to Tacit only)."),
 		paymentVerificationNote: j.string().describe("Short verification note."),
@@ -3084,7 +3820,7 @@ worker.tool("previewPlayerAcademyPurchase", {
 	hints: { readOnlyHint: true },
 	schema: j.object({
 		studentPageId: j.string().describe("TP: People page ID of the student."),
-		courtRentalIdr: j.number().describe("Court rental amount in full IDR (operator-provided)."),
+		courtRentalIdr: j.number().describe("Court rental amount in thousands IDR (operator-provided)."),
 		joinedTacitTribe: j.string().nullable().describe("Date the student joined Tacit Tribe (ISO format), or null if not a member."),
 	}),
 	execute: async (input, { notion }) => {
@@ -3286,7 +4022,7 @@ worker.webhook("onPlayerAcademySaleReady", {
 						const computedDiscount = tribeDiscountForNumber(tribeNumber)
 						if (computedDiscount > 0) {
 							discountPercent = computedDiscount
-							discountReasonNames = ["Tacit Tribe"]
+							discountReasonNames = ["Early Bird Promotion: Tacit Originals"]
 							const expiry = new Date(joinedTacitTribe!)
 							expiry.setMonth(expiry.getMonth() + 6)
 							discountExplanation = `Tribe #${tribeNumber}, ${Math.round(computedDiscount * 100)}% Shared Discount, expires ${expiry.toISOString().slice(0, 10)}`
@@ -3301,6 +4037,23 @@ worker.webhook("onPlayerAcademySaleReady", {
 				const discountAmountIdr = round(academyFeesIdr * discountPercent)
 				const finalChargedPrice = academyFeesIdr - discountAmountIdr + courtRentalIdr
 
+				// Copy the Organisation's PA split onto the Sale if not already set.
+				// The Worker owns this financial write — Polly does not set splits.
+				const existingTacitSplit = numberValue(property(sale, "Tacit %"))
+				const existingClubSplit = numberValue(property(sale, "Club %"))
+				let orgTacitSplit: number | null = existingTacitSplit
+				let orgClubSplit: number | null = existingClubSplit
+				if (orgTacitSplit === null || orgClubSplit === null) {
+					const rawClub = await notion.pages.retrieve({ page_id: orgIds[0] })
+					if ("properties" in rawClub) {
+						const club = rawClub as unknown as NotionPage
+						const paTacit = numberValue(property(club, "PA: Tacit %"))
+						const paClub = numberValue(property(club, "PA: Club %"))
+						if (paTacit !== null) orgTacitSplit = paTacit
+						if (paClub !== null) orgClubSplit = paClub
+					}
+				}
+
 				// Write computed values back onto the draft Sale
 				await notion.pages.update({
 					page_id: salePageId,
@@ -3310,6 +4063,7 @@ worker.webhook("onPlayerAcademySaleReady", {
 						"Resolved Coaching Rate (IDR)": { number: academyFeesIdr },
 						"Final Charged Price (IDR)": { number: finalChargedPrice },
 						"Revenue Scope": { select: { name: "Academy Fees" } },
+						Areas: { relation: [{ id: "26cafdfb-c3c7-8029-b99c-ddff61c256f3" }] },
 						"Shared Discount %": { number: discountPercent },
 						"Discount Reason": { multi_select: discountReasonNames.map((name) => ({ name })) },
 						"Discount Explanation": {
@@ -3317,8 +4071,14 @@ worker.webhook("onPlayerAcademySaleReady", {
 								? [{ type: "text", text: { content: discountExplanation } }]
 								: [],
 						},
+						...(orgTacitSplit !== null ? { "Tacit %": { number: orgTacitSplit } } : {}),
+						...(orgClubSplit !== null ? { "Club %": { number: orgClubSplit } } : {}),
+						...(dateValue(property(sale, "Payment Verified At"))?.start
+							? { "Revenue Date": { date: { start: dateValue(property(sale, "Payment Verified At"))!.start } } }
+							: {}),
 						"Payment Processing Status": { select: { name: "Processed" } },
 					} as never,
+					icon: { type: "icon", icon: { name: "barcode", color: "brown" } } as never,
 				})
 
 				// Assign Tribe Number on People at payment time (only if operator
@@ -3337,16 +4097,18 @@ worker.webhook("onPlayerAcademySaleReady", {
 					parent: { data_source_id: balanceSheetDataSourceId },
 					icon: { type: "icon", icon: { name: "upward", color: "green" } } as never,
 					properties: {
-						Item: { title: [{ text: { content: `${applySaleSku ? `${applySaleSku} · ` : ""}${textValue(property(sale, "Sale")) || `Player Academy · ${salePageId.slice(0, 8)}`} · ${String(event.body?.operationKey ?? salePageId.slice(0, 8))}` } }] },
+						Item: { title: [{ text: { content: `${applySaleSku ? `${applySaleSku} · ` : ""}${textValue(property(sale, "Sale")) || `Player Academy · ${salePageId.slice(0, 8)}`}` } }] },
 						Sales: { relation: [{ id: salePageId }] },
 						"Record Type": { select: { name: "Transaction" } },
 						"In/Out": { select: { name: "Incoming" } },
 						"Payment Status": { status: { name: "Paid" } },
 						"Transaction Date": {
-							date: { start: dateValue(property(sale, "Payment Verified At"))?.start ?? new Date().toISOString() },
+							date: { start: dateValue(property(sale, "Payment Date"))?.start ?? dateValue(property(sale, "Payment Verified At"))?.start ?? new Date().toISOString() },
 						},
 						Organisations: { relation: orgIds.map((id) => ({ id })) },
 						People: { relation: studentIds.map((id) => ({ id })) },
+						"FX Source Currency": { select: { name: "IDR" } },
+						"FX Source Amount": { number: finalChargedPrice * 1000 },
 						Note: {
 							rich_text: [{ text: { content: `Player Academy Mode 2 webhook processing for Sale ${salePageId}` } }],
 						},
@@ -3469,6 +4231,7 @@ worker.tool("createPlayerAcademyInvoice", {
 			properties: {
 				Invoice: { title: [{ text: { content: `INV-TP-_${studentName}` } }] },
 				Sales: { relation: [{ id: input.salePageId }] },
+				People: { relation: [{ id: studentIds[0] }] },
 				"Invoice Date": { date: { start: today } },
 				"Due Date": { date: { start: dueDate } },
 				Status: { status: { name: "Draft" } },
@@ -3759,6 +4522,13 @@ const SYBIL_FIELD_SPEC: Record<string, Record<string, string>> = {
 	}
 }
 
+const sybilDateIso = (v: unknown): string | null => {
+	if (typeof v === "number" && Number.isFinite(v)) return new Date(v).toISOString()
+	if (typeof v !== "string" || !v) return null
+	const t = Date.parse(v)
+	return Number.isFinite(t) ? new Date(t).toISOString() : null
+}
+
 const sybilPropRead = (value: unknown, kind: string): unknown => {
 	const p = value as Record<string, unknown> | undefined
 	if (!p) return null
@@ -3768,7 +4538,11 @@ const sybilPropRead = (value: unknown, kind: string): unknown => {
 	if (kind === "relation") return ((p.relation as { id?: string }[]) ?? []).map(o => o.id).sort()
 	if (kind === "text") return ((p.rich_text as { plain_text?: string }[]) ?? []).map(t => t.plain_text).join("")
 	if (kind === "title") return ((p.title as { plain_text?: string }[]) ?? []).map(t => t.plain_text).join("")
-	if (kind === "date") return (p.date as { start?: string } | null)?.start ?? null
+	if (kind === "date") {
+		const d = p.date as { start?: string | null; end?: string | null } | null
+		if (!d) return null
+		return { start: sybilDateIso(d.start), end: sybilDateIso(d.end) }
+	}
 	return null
 }
 
@@ -3779,12 +4553,23 @@ const sybilPropWrite = (value: unknown, kind: string): unknown => {
 	if (kind === "relation") return { relation: (value as string[]).map(id => ({ id })) }
 	if (kind === "text") return { rich_text: value ? [{ text: { content: value as string } }] : [] }
 	if (kind === "title") return { title: [{ text: { content: value as string } }] }
-	if (kind === "date") return { date: { start: value } }
+	if (kind === "date") {
+		if (value == null) return { date: null }
+		if (typeof value === "string" || typeof value === "number") return { date: { start: sybilDateIso(value) ?? value } }
+		const d = value as { start?: unknown; end?: unknown }
+		return { date: { start: sybilDateIso(d.start) ?? d.start ?? null, end: sybilDateIso(d.end) ?? d.end ?? null } }
+	}
 	return null
 }
 
 const sybilNormalize = (value: unknown, kind: string): unknown => {
 	if (kind === "multi_select" || kind === "relation") return [...(value as string[])].sort()
+	if (kind === "date") {
+		if (value == null) return null
+		if (typeof value === "string" || typeof value === "number") return { start: sybilDateIso(value), end: null }
+		const d = value as { start?: unknown; end?: unknown }
+		return { start: sybilDateIso(d.start), end: sybilDateIso(d.end) }
+	}
 	return value
 }
 
@@ -3910,4 +4695,283 @@ worker.tool("applySybilRecordCorrection", {
 			throw e
 		}
 	}
+})
+
+// ============================================================================
+// Dividend Split — Monthly distribution of the 60% dividend pool by DS%
+// ============================================================================
+
+const hrDataSourceId = "2c3afdfb-c3c7-8038-8d52-f462410cb709"
+
+worker.tool("previewDividendSplit", {
+	title: "Preview monthly dividend split",
+	description:
+		"Read-only calculator for the monthly dividend distribution. Takes the monthly dividend pool (sum of Dividends (IDR) across Sales for the month) and the month's payroll records; returns each person's share based on their Dividend Split %. Does not create or change any records.",
+	hints: { readOnlyHint: true },
+	schema: j.object({
+		year: j.integer().describe("Calendar year, e.g. 2026."),
+		month: j.integer().describe("Calendar month 1-12."),
+		dividendPool: j.number().describe("Monthly dividend pool in IDR (60% of monthly Tacit Gross Profit)."),
+		payrollRecordIds: j.array(j.string()).describe("Payroll record page IDs for this month (each carries Dividend Split %)."),
+	}),
+	execute: async (input, { notion }) => {
+		const startDate = new Date(input.year, input.month - 1, 1)
+		const monthName = startDate.toLocaleString("en-US", { month: "long", year: "numeric" })
+		if (input.payrollRecordIds.length < 1) throw new Error("At least one payroll record ID is required.")
+		const profiles = await Promise.all(
+			input.payrollRecordIds.map(async (id) => {
+				const raw = await notion.pages.retrieve({ page_id: id })
+				if (!("properties" in raw)) throw new Error(`Payroll record ${id} could not be read.`)
+				const page = raw as unknown as NotionPage
+				const profileId = relationIds(property(page, "Profile"))[0] ?? relationIds(property(page, "TP: HR [Self]"))[0] ?? null
+				let splitPct: number | null = null
+				if (profileId) {
+					const rawProfile = await notion.pages.retrieve({ page_id: profileId })
+					if ("properties" in rawProfile) {
+						splitPct = numberValue(property(rawProfile as unknown as NotionPage, "Dividend Split %"))
+					}
+				}
+				return {
+					id,
+					name: textValue(property(page, "Name")),
+					splitPct,
+				}
+			})
+		)
+		const missing = profiles.filter((p) => p.splitPct === null || (p.splitPct as number) <= 0)
+		if (missing.length > 0) throw new Error(`Missing Dividend Split % on profile for: ${missing.map((p) => p.name).join(", ")}`)
+		const totalPct = profiles.reduce((s, p) => s + (p.splitPct as number), 0)
+		let allocated = 0
+		const shares = profiles.map((p) => {
+			const amount = round(input.dividendPool * (p.splitPct as number))
+			allocated += amount
+			return { name: p.name, splitPct: p.splitPct, amount }
+		})
+		return jsonOutput({
+			month: monthName,
+			dividendPool: input.dividendPool,
+			totalSplitPct: totalPct,
+			shares,
+			note: "Preview only — no records created. Use applyDividendSplit to create the Dividend Split rows.",
+		})
+	},
+})
+
+worker.tool("applyDividendSplit", {
+	title: "Apply monthly dividend split",
+	description:
+		"Creates Dividend Split sub-item rows nested under each payroll record for the month. Reads each payroll's Dividend Split %, Profile, and Pay Period; computes each person's share of the monthly dividend pool; creates a 'Dividend:' row under each payroll with Amount (IDR), Dividend Split %, Profile, Pay Period, and the atm_green icon.",
+	schema: j.object({
+		year: j.integer().describe("Calendar year, e.g. 2026."),
+		month: j.integer().describe("Calendar month 1-12."),
+		dividendPool: j.number().describe("Monthly dividend pool in IDR (60% of monthly Tacit Gross Profit)."),
+		payrollRecordIds: j.array(j.string()).describe("Payroll record page IDs for this month (each carries Dividend Split %)."),
+		authorisedBy: j.string().describe("Name of the person authorising this dividend distribution."),
+	}),
+	execute: async (input, { notion }) => {
+		const startDate = new Date(input.year, input.month - 1, 1)
+		const monthName = startDate.toLocaleString("en-US", { month: "long", year: "numeric" })
+		if (input.payrollRecordIds.length < 1) throw new Error("At least one payroll record ID is required.")
+		const payrolls = await Promise.all(
+			input.payrollRecordIds.map(async (id) => {
+				const raw = await notion.pages.retrieve({ page_id: id })
+				if (!("properties" in raw)) throw new Error(`Payroll record ${id} could not be read.`)
+				const page = raw as unknown as NotionPage
+				const profile = relationIds(property(page, "Profile"))
+				const profileId = profile[0] ?? relationIds(property(page, "TP: HR [Self]"))[0] ?? null
+				let splitPct: number | null = null
+				if (profileId) {
+					const rawProfile = await notion.pages.retrieve({ page_id: profileId })
+					if ("properties" in rawProfile) {
+						splitPct = numberValue(property(rawProfile as unknown as NotionPage, "Dividend Split %"))
+					}
+				}
+				return {
+					id,
+					name: textValue(property(page, "Name")),
+					splitPct,
+					payPeriod: dateValue(property(page, "Pay Period")),
+					profile,
+				}
+			})
+		)
+		const missing = payrolls.filter((p) => p.splitPct === null || (p.splitPct as number) <= 0)
+		if (missing.length > 0) throw new Error(`Missing Dividend Split % on profile for: ${missing.map((p) => p.name).join(", ")}`)
+		const totalPct = payrolls.reduce((s, p) => s + (p.splitPct as number), 0)
+		if (totalPct > 1.0001) throw new Error(`Dividend Split % total exceeds 100%: ${round(totalPct * 100)}%`)
+
+		const created: Array<{ name: string; hrRecordId: string; amount: number; splitPct: number }> = []
+		let allocated = 0
+		for (let i = 0; i < payrolls.length; i++) {
+			const payroll = payrolls[i]
+			const amount = round(input.dividendPool * (payroll.splitPct as number))
+			allocated += amount
+			const hrRecord = await notion.pages.create({
+				parent: { database_id: hrDataSourceId },
+				icon: { type: "external", external: { url: "https://app.notion.com/icons/atm_green.svg" } },
+				properties: {
+					Name: { title: [{ text: { content: payroll.name.replace(/^Payroll:/, "Dividend:") } }] },
+					"HR Type": { select: { name: "Dividend Split" } },
+					"Pay Period": { date: payroll.payPeriod ? { start: payroll.payPeriod.start, end: payroll.payPeriod.end } : { start: startDate.toISOString().slice(0, 10) } },
+					"Amount (IDR)": { number: amount },
+					"Dividend Split %": { number: payroll.splitPct as number },
+					"TP: HR [Self]": { relation: [{ id: payroll.id }] },
+					Profile: { relation: payroll.profile.map((pid) => ({ id: pid })) },
+				} as never,
+			})
+			created.push({ name: payroll.name, hrRecordId: hrRecord.id, amount, splitPct: payroll.splitPct as number })
+		}
+
+		return jsonOutput({
+			mode: "applied",
+			month: monthName,
+			dividendPool: input.dividendPool,
+			recipientCount: payrolls.length,
+			recipients: created,
+			authorisedBy: input.authorisedBy,
+			changed: created.map((c) => `Dividend row under ${c.name} (${c.splitPct * 100}% = ${c.amount})`),
+		})
+	},
+})
+
+worker.tool("applyMonthlyPayroll", {
+	title: "Apply monthly payroll and dividend split",
+	description:
+		"Creates Payroll rows (atm_orange) under each person's HR profile, then creates Dividend Split rows (atm_green) nested under each payroll. Each employee's Dividend Split % is read from their HR profile; each dividend amount = dividendPool × DS%.",
+	schema: j.object({
+		year: j.integer().describe("Calendar year, e.g. 2026."),
+		month: j.integer().describe("Calendar month 1-12."),
+		dividendPool: j.number().describe("Monthly dividend pool in IDR (60% of monthly Tacit Gross Profit)."),
+		employees: j.array(j.object({
+			profileId: j.string().describe("HR profile page ID of the employee."),
+			salary: j.number().describe("Monthly salary amount (IDR) for the Payroll row."),
+		})).describe("Employees to pay this month."),
+		authorisedBy: j.string().describe("Name of the person authorising this payroll run."),
+		transactionDate: j.string().describe("ISO date (YYYY-MM-DD) when the payment was actually made, as confirmed by the operator."),
+	}),
+	execute: async (input, { notion }) => {
+		const startDate = new Date(input.year, input.month - 1, 1)
+		const endDate = new Date(input.year, input.month, 0)
+		const monthName = startDate.toLocaleString("en-US", { month: "long", year: "numeric" })
+		if (input.employees.length < 1) throw new Error("At least one employee is required.")
+
+		const profiles = await Promise.all(
+			input.employees.map(async (e) => {
+				const raw = await notion.pages.retrieve({ page_id: e.profileId })
+				if (!("properties" in raw)) throw new Error(`HR profile ${e.profileId} could not be read.`)
+				const page = raw as unknown as NotionPage
+				return {
+					id: e.profileId,
+					name: textValue(property(page, "Name")),
+					salary: e.salary,
+					splitPct: numberValue(property(page, "Dividend Split %")),
+				}
+			})
+		)
+		const totalPct = profiles.reduce((s, p) => s + (p.splitPct ?? 0), 0)
+		if (totalPct > 1.0001) throw new Error(`Dividend Split % total exceeds 100%: ${round(totalPct * 100)}%`)
+
+		const created: Array<{ name: string; payrollId: string; dividendId: string; salary: number; dividendAmount: number }> = []
+		let allocated = 0
+		for (let i = 0; i < profiles.length; i++) {
+			const profile = profiles[i]
+			// 1. Payroll row under the profile
+			const payroll = await notion.pages.create({
+				parent: { database_id: hrDataSourceId },
+				icon: { type: "external", external: { url: "https://app.notion.com/icons/atm_orange.svg" } },
+				properties: {
+					Name: { title: [{ text: { content: `Payroll: ${monthName} - ${profile.name}` } }] },
+					"HR Type": { select: { name: "Payroll" } },
+					"Pay Period": { date: { start: startDate.toISOString().slice(0, 10), end: endDate.toISOString().slice(0, 10) } },
+					"Amount (IDR)": { number: profile.salary },
+					"TP: HR [Self]": { relation: [{ id: profile.id }] },
+					Profile: { relation: [{ id: profile.id }] },
+				} as never,
+			})
+			// 1b. Balance Sheet ledger row for the payroll — required so it doesn't land in the "no ledger row" guard view
+			const bsRow = await notion.pages.create({
+				parent: { data_source_id: balanceSheetDataSourceId },
+				icon: { type: "external", external: { url: "https://app.notion.com/icons/downward_red.svg" } },
+				properties: {
+					Item: { title: [{ text: { content: `Payroll: ${monthName} - ${profile.name}` } }] },
+					"Human Resources": { relation: [{ id: payroll.id }] },
+					"Budget Category": { multi_select: [{ name: "Salaries" }] },
+					"Price (IDR)": { number: profile.salary },
+					"FX Source Amount": { number: profile.salary * 1000 },
+					"FX Source Currency": { select: { name: "IDR" } },
+					"Billing Period": { date: { start: startDate.toISOString().slice(0, 10), end: endDate.toISOString().slice(0, 10) } },
+				"Transaction Date": { date: { start: input.transactionDate } },
+					"In/Out": { select: { name: "Outgoing" } },
+					"Record Type": { select: { name: "Transaction" } },
+					"Audit Status": { status: { name: "Not started" } },
+					"Audit Batch": { select: { name: "Payroll" } },
+					"Payment Status": { status: { name: "Paid" } },
+					Recurring: { select: { name: "Monthly" } },
+					"Database Group": { select: { name: "Knowledge" } },
+				} as never,
+			})
+			await notion.pages.update({
+				page_id: payroll.id,
+				properties: { "Balance Sheet": { relation: [{ id: bsRow.id }] } } as never,
+			})
+			// 2. Dividend row under the payroll — only when the profile has a positive DS%
+			const amount = profile.splitPct !== null && profile.splitPct > 0 ? round(input.dividendPool * profile.splitPct) : 0
+			allocated += amount
+			if (amount <= 0) {
+				created.push({ name: profile.name, payrollId: payroll.id, dividendId: "", salary: profile.salary, dividendAmount: 0 })
+				continue
+			}
+			const dividend = await notion.pages.create({
+				parent: { database_id: hrDataSourceId },
+				icon: { type: "external", external: { url: "https://app.notion.com/icons/atm_green.svg" } },
+				properties: {
+					Name: { title: [{ text: { content: `Dividend: ${monthName} - ${profile.name}` } }] },
+					"HR Type": { select: { name: "Dividend Split" } },
+					"Pay Period": { date: { start: startDate.toISOString().slice(0, 10), end: endDate.toISOString().slice(0, 10) } },
+					"Amount (IDR)": { number: amount },
+					"Dividend Split %": { number: profile.splitPct as number },
+					"TP: HR [Self]": { relation: [{ id: payroll.id }] },
+					Profile: { relation: [{ id: profile.id }] },
+				} as never,
+			})
+			const divBsRow = await notion.pages.create({
+				parent: { data_source_id: balanceSheetDataSourceId },
+				icon: { type: "external", external: { url: "https://app.notion.com/icons/downward_red.svg" } },
+				properties: {
+					Item: { title: [{ text: { content: `Dividend: ${monthName} - ${profile.name}` } }] },
+					"Human Resources": { relation: [{ id: dividend.id }] },
+					"Budget Category": { multi_select: [{ name: "Salaries" }] },
+					"Price (IDR)": { number: amount },
+					"FX Source Amount": { number: amount * 1000 },
+					"FX Source Currency": { select: { name: "IDR" } },
+					"Billing Period": { date: { start: startDate.toISOString().slice(0, 10), end: endDate.toISOString().slice(0, 10) } },
+				"Transaction Date": { date: { start: input.transactionDate } },
+					"In/Out": { select: { name: "Outgoing" } },
+					"Record Type": { select: { name: "Transaction" } },
+					"Audit Status": { status: { name: "Not started" } },
+					"Audit Batch": { select: { name: "Payroll" } },
+					"Payment Status": { status: { name: "Paid" } },
+					Recurring: { select: { name: "Monthly" } },
+					"Database Group": { select: { name: "Knowledge" } },
+				} as never,
+			})
+			await notion.pages.update({
+				page_id: dividend.id,
+				properties: { "Balance Sheet": { relation: [{ id: divBsRow.id }] } } as never,
+			})
+			created.push({ name: profile.name, payrollId: payroll.id, dividendId: dividend.id, salary: profile.salary, dividendAmount: amount })
+		}
+
+		return jsonOutput({
+			mode: "applied",
+			month: monthName,
+			dividendPool: input.dividendPool,
+			employeeCount: profiles.length,
+			allocated,
+			unallocated: input.dividendPool - allocated,
+			employees: created,
+			authorisedBy: input.authorisedBy,
+			changed: created.flatMap((c) => [`Payroll: ${monthName} - ${c.name}`, `Dividend: ${monthName} - ${c.name}`]),
+		})
+	},
 })
