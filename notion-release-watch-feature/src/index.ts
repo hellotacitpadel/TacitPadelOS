@@ -23,6 +23,13 @@ export default worker
 
 const FEEDS: { url: string; source: string }[] = [
   {
+    // Official Notion releases feed — first-party host, reachable from the
+    // worker runtime. Item links are /releases/YYYY-MM-DD, matching existing
+    // "Releases page" rows, so Link dedupe upserts cleanly.
+    url: "https://www.notion.com/releases/rss.xml",
+    source: "Releases page",
+  },
+  {
     // Medium mirror of Matthias Frank's Weekly Notion Roundup.
     // Primary source: MF's own feed (matthiasfrank.de) is Cloudflare-walled
     // and returns 403 from Notion's datacenter. Medium's feed is the same
