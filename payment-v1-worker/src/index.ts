@@ -1730,7 +1730,8 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 		if (booleanValue(property(event, "Payment Processing Exception"))) {
 			blockers.push("Payment Processing Exception is checked.")
 		}
-		if (product === "Player Academy" || product === "Life Academy") blockers.push("Player Academy and Life Academy are fail-closed for Payment V1.")
+		if (product === "Player Academy" && input.paymentChannel !== "Wallet") blockers.push("Player Academy is fail-closed for Payment V1 except via the Wallet channel.")
+		if (product === "Life Academy") blockers.push("Life Academy is fail-closed for Payment V1.")
 		if (!product) blockers.push("Event Type is unresolved.")
 		if (priceListIds.length !== 1) blockers.push("Exactly one Published Price List is required.")
 		if (input.studentPageIds.length < 1) blockers.push("At least one verified attendee is required.")
@@ -3591,6 +3592,7 @@ type PlayerAcademyPurchaseInput = {
 	discountExplanation: string
 	joinedTacitTribe?: string
 	tribeNumber?: number
+	walletHolderPageId?: string
 }
 
 // --- Main apply function ---
@@ -3612,6 +3614,10 @@ const applyPlayerAcademyPurchase = async (
 		if (!input.paymentVerifiedAt || !input.paymentVerifiedById) {
 			blockers.push("Bank transfer to Tacit requires paymentVerifiedAt and paymentVerifiedById.")
 		}
+	}
+	if (input.paymentChannel === "Wallet") {
+		if (!input.walletHolderPageId) blockers.push("Wallet channel requires walletHolderPageId.")
+		if (input.paidTo !== "Tacit") blockers.push("Wallet channel must be paid to Tacit.")
 	}
 	if (blockers.length) {
 		return jsonOutput({ mode: "blocked-no-write", operationKey: input.operationKey, blockers, created: [], salePageId: null, tribeNumberAssigned: null })
@@ -3684,6 +3690,45 @@ const applyPlayerAcademyPurchase = async (
 		paClubSplit = numberValue(property(club, "PA: Club %"))
 	}
 	const relations = (ids: string[]) => ids.map((id) => ({ id }))
+	// Wallet channel: read the wallet holder's active wallet to get Wallet Type
+	let walletType: string | null = null
+	let walletHolderWalletPageId: string | null = null
+	if (input.paymentChannel === "Wallet" && input.walletHolderPageId) {
+		// Find the holder's most recent active wallet Sale (Sale Role = Wallet, Sale Status != Cancelled)
+		const holderWallets = await notion.dataSources.query({
+			data_source_id: salesDataSourceId,
+			filter: {
+				and: [
+					{ property: "Students", relation: { contains: input.walletHolderPageId } },
+					{ property: "Sale Role", select: { equals: "Wallet" } },
+					{ property: "Sale Status", select: { does_not_equal: "Cancelled" } },
+				],
+			},
+			sorts: [{ property: "Revenue Date", direction: "descending" }],
+			page_size: 10,
+		})
+		for (const wr of holderWallets.results) {
+			if (!("properties" in wr)) continue
+			const wp = wr as unknown as NotionPage
+			const wt = textValue(property(wp, "Wallet Type"))
+			const remaining = numberValue(property(wp, "Wallet Credit Remaining (IDR)"))
+			if (wt && remaining !== null && remaining > 0) {
+				walletType = wt
+				walletHolderWalletPageId = wr.id
+				break
+			}
+		}
+		if (!walletHolderWalletPageId) {
+			return jsonOutput({
+				mode: "blocked-no-write",
+				operationKey: input.operationKey,
+				blockers: ["Wallet holder has no active wallet with remaining credit."],
+				created: [],
+				salePageId: null,
+				tribeNumberAssigned: null,
+			})
+		}
+	}
 	const sale = await notion.pages.create({
 		parent: { data_source_id: salesDataSourceId },
 		icon: { type: "icon", icon: { name: "barcode", color: "brown" } } as never,
@@ -3707,7 +3752,7 @@ const applyPlayerAcademyPurchase = async (
 			"Final Charged Price (IDR)": { number: finalChargedPrice },
 			"Court Hourly Rate (IDR)": { number: input.courtRentalIdr },
 			"Shared Discount %": { number: discountPercent },
-			"Discount Reason": { multi_select: discountReasonNames.map((name) => ({ name })) },
+			"Discount Reason": { multi_select: [...discountReasonNames, ...(input.paymentChannel === "Wallet" ? ["Wallet: Paid"] : [])].map((name) => ({ name })) },
 			"Discount Explanation": {
 				rich_text: discountExplanation
 					? [{ type: "text", text: { content: discountExplanation } }]
@@ -3715,6 +3760,14 @@ const applyPlayerAcademyPurchase = async (
 			},
 			"Payment Channel": { select: { name: input.paymentChannel } },
 			"Paid To": { select: { name: input.paidTo } },
+			...(input.paymentChannel === "Wallet" && walletHolderWalletPageId
+				? {
+					Group: { relation: relations([walletHolderWalletPageId]) },
+					"Wallet 1 Draw (IDR)": { number: finalChargedPrice },
+					"Wallet 2 Draw (IDR)": { number: 0 },
+					...(walletType ? { "Wallet Type": { select: { name: walletType } } } : {}),
+				}
+				: {}),
 			...(input.paymentDate || input.paymentVerifiedAt
 				? { "Payment Date": { date: { start: input.paymentDate || input.paymentVerifiedAt! } } }
 				: {}),
@@ -3803,7 +3856,7 @@ worker.tool("applyPlayerAcademyPurchase", {
 		clubPageId: j.string().describe("TP: Organisations page ID of the club."),
 		courtRentalIdr: j.number().describe("Court rental amount in thousands IDR (operator-provided)."),
 		processingType: j.enum("Payment", "Promo").describe("Processing type."),
-		paymentChannel: j.enum("Bank transfer", "Courtside", "Club", "Ayo", "Reclub").describe("Payment channel."),
+		paymentChannel: j.enum("Bank transfer", "Courtside", "Club", "Ayo", "Reclub", "Wallet").describe("Payment channel."),
 		paidTo: j.enum("Tacit", "Club").describe("Who collected the payment."),
 		paymentDate: j.string().nullable().describe("ISO-8601 date the payment was actually received (YYYY-MM-DD), operator-confirmed. Written to Sale Payment Date and the ledger Transaction Date."),
 		paymentVerifiedAt: j.string().nullable().describe("ISO timestamp when payment was verified."),
@@ -3814,6 +3867,7 @@ worker.tool("applyPlayerAcademyPurchase", {
 		discountExplanation: j.string().describe("Concise discount explanation. Worker overrides with tribe details if applicable."),
 		joinedTacitTribe: j.string().nullable().describe("Date the student joined Tacit Tribe (ISO format), or null if not a member. The Worker writes this to People at apply."),
 		tribeNumber: j.number().nullable().describe("Operator-confirmed Tribe Number (1-80). If omitted, the Worker assigns the next available number."),
+		walletHolderPageId: j.string().nullable().describe("TP: People page ID of the wallet holder. Required when paymentChannel is Wallet; otherwise null."),
 	}),
 	execute: async (input, { notion }) => applyPlayerAcademyPurchase(input as PlayerAcademyPurchaseInput, notion),
 })
