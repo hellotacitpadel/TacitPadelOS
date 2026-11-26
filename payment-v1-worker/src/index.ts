@@ -2076,7 +2076,9 @@ const applyPaymentV1VerifiedSale = async (input: ApplyPaymentInput, notion: Clie
 				...(joinable && existingCostSaleId && input.paymentChannel !== "Wallet"
 					? { Group: { relation: relations([existingCostSaleId]) } }
 					: {}),
-				...(input.paymentDate ? { "Payment Date": { date: { start: input.paymentDate } } } : {}),
+				...(input.paymentDate || input.paymentVerifiedAt
+					? { "Payment Date": { date: { start: input.paymentDate || input.paymentVerifiedAt! } } }
+					: {}),
 				...(input.paymentVerifiedAt ? { "Payment Verified At": { date: { start: input.paymentVerifiedAt } } } : {}),
 				...(input.paymentVerifiedById ? { "Payment Verified By": { people: [{ id: input.paymentVerifiedById }] } } : {}),
 				"Payment Verification Note": {
@@ -3713,7 +3715,9 @@ const applyPlayerAcademyPurchase = async (
 			},
 			"Payment Channel": { select: { name: input.paymentChannel } },
 			"Paid To": { select: { name: input.paidTo } },
-			...(input.paymentDate ? { "Payment Date": { date: { start: input.paymentDate } } } : {}),
+			...(input.paymentDate || input.paymentVerifiedAt
+				? { "Payment Date": { date: { start: input.paymentDate || input.paymentVerifiedAt! } } }
+				: {}),
 			...(input.paymentVerifiedAt ? { "Payment Verified At": { date: { start: input.paymentVerifiedAt } } } : {}),
 			...(input.paymentVerifiedById ? { "Payment Verified By": { people: [{ id: input.paymentVerifiedById }] } } : {}),
 			"Payment Verification Note": {
@@ -3753,6 +3757,7 @@ const applyPlayerAcademyPurchase = async (
 				date: { start: input.paymentDate ?? input.paymentVerifiedAt ?? new Date().toISOString() },
 			},
 			Organisations: { relation: relations([input.clubPageId]) },
+			Areas: { relation: [{ id: "26cafdfb-c3c7-8029-b99c-ddff61c256f3" }] },
 			People: { relation: relations([input.studentPageId]) },
 			"FX Source Currency": { select: { name: "IDR" } },
 			"FX Source Amount": { number: finalChargedPrice * 1000 },
@@ -4106,6 +4111,7 @@ worker.webhook("onPlayerAcademySaleReady", {
 							date: { start: dateValue(property(sale, "Payment Date"))?.start ?? dateValue(property(sale, "Payment Verified At"))?.start ?? new Date().toISOString() },
 						},
 						Organisations: { relation: orgIds.map((id) => ({ id })) },
+						Areas: { relation: [{ id: "26cafdfb-c3c7-8029-b99c-ddff61c256f3" }] },
 						People: { relation: studentIds.map((id) => ({ id })) },
 						"FX Source Currency": { select: { name: "IDR" } },
 						"FX Source Amount": { number: finalChargedPrice * 1000 },
